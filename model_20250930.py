@@ -22,15 +22,19 @@ class cnnModel(torch.nn.Module):
         super(cnnModel, self).__init__()
 
         # embedding dimension = ed
+        self.codeSize = 18
         self.ed = 7
         self.padidx = 0    # change this for another padding index
         
-        # convolutional layers, in format (in_channels, out_channels, kernel_size)
+        # convolutional layers, in format 
+        #(in_channels, out_channels, kernel_size, stride, padding, activation)
+        # each convolution w/o padding reduces size by kernel-1
+        # so minimum size must be greater than SUM(kernel-1)
         paramsHidden = (
-                         ( self.ed, 5, 11, torch.nn.ReLU() ),
-                         ( 5, 5, 11, torch.nn.ReLU() ),
-                         ( 5, 5, 11, torch.nn.ReLU() ),
-                         ( 5, 5, 11, torch.nn.ReLU() )
+                         ( self.ed, 5, 11, 1, 'valid', torch.nn.ReLU() ),
+                         ( 5, 5, 11, 'valid', torch.nn.ReLU() ),
+                         ( 5, 5, 11, 'valid', torch.nn.ReLU() ),
+                         ( 5, 5, 11, 'valid', torch.nn.ReLU() )
                        )
         paramsLast = ( 5, 3, 11 )  
         
