@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-analyze a data file containing cognate site data.
-format should be two columns separated by a delimiter
-    RE Name (1)     site sequence (2)
+analyze a data file containing protein sequences
+format should be FASTA
     
 output:
     number of entries
@@ -12,7 +11,6 @@ output:
     histogram of character use in site strings
 """
 import os
-import numpy as np
 import pandas as pd
 from Bio import SeqIO
 import matplotlib.pyplot as plt
@@ -21,51 +19,53 @@ import matplotlib.pyplot as plt
 ###############################################################################
 ###############################################################################
 '''
-
 # data file name and directory
-sequenceFile = 'All_Type_II_restriction_enzyme_genes_Protein_head100000.txt'
+sequenceFile = 'All_Type_II_restriction_enzyme_genes_Protein.txt'
 dataDir = '/home/allen/projects/DATA/bsp'
 
-printNames = False
+# option to print sequence names as processed
+printNames = True  
+reportCycle = 1000
+
+# file format
+fileFormat = 'fasta'  # if error message, try 'fasta-pearson'
 
 ###############################################################################
 ################ DOT NOT CHANGE ANYTHING UNDER THIS SEPARATOR #################
 ###############################################################################
 
 # read in sequence file
-record = SeqIO.parse(os.path.join(dataDir,sequenceFile),'fasta-pearson')
+record = SeqIO.parse(os.path.join(dataDir,sequenceFile),fileFormat)
 
 # create data frame with sequence lengths, print stats
 reNames = []
-#sequences = ''
 seqLengths = []
-charCounts = np.zeros(20)
-vocab = 
-for c in charList:
-    charCounts.append( sequences.count(c) )
+charCounts = [0]*20
+step = 0
+chars = "ARNDCEQGHILKMFPSTWYV"
 for rec in record:
-    if printNames:
-        print(rec.name,end=' ')
     reNames.append(rec.name)
-#    sequences = sequences + rec.seq
     seqLengths.append( len(rec.seq) )
-    for c in charList:
-        charCounts[.append( sequences.count(c) )
+  
+    # count and increment character use
+    for i,c in enumerate(chars):
+        charCounts[i] += rec.seq.count(c)
+        
+    # print out RE name if needed
+    if step % reportCycle == 0:
+        if printNames:
+            print(step,rec.name)
+            
+    step += 1
+
+# create dataframe, print stats and plot length histogram
 dataDict = { 'RE': reNames, 'length': seqLengths }
 dataDf = pd.DataFrame( dataDict )
-print(dataDf.describe())
-
-# create site length histogram
+print('\n\n',dataDf.describe())
 dataDf[['length']].hist(bins=20)
 
-# now create character use list, print
-charList = list("ARNDCEQGHILKMFPSTWYV")
-print( 'character set:', charList )
-
-# count character use and plot
-charCounts = []
-for c in charList:
-    charCounts.append( sequences.count(c) )
+# now print characters and plot use
+print( '\ncharacter set:', list(chars) )
 plt.figure(2)
 plt.title('character use')
-plt.bar(range(len(charCounts)),charCounts,tick_label=charList) 
+plt.bar(range(len(charCounts)),charCounts,tick_label=list(chars)) 

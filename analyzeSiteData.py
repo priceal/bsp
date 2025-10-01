@@ -21,11 +21,11 @@ import matplotlib.pyplot as plt
 '''
 
 # data file name and directory
-siteFile = 'proto_clean.csv'
-dataDir = '/home/allen/projects/DATA/bsp'
+siteFile = 'proto.csv'
+dataDir = '/home/allen/projects/DATA/bsp' # '.'
 
 # character separating columns
-delimitChar = '\t'
+delimitChar = ' '   #   ','  or '\t'
 
 ###############################################################################
 ################ DOT NOT CHANGE ANYTHING UNDER THIS SEPARATOR #################
@@ -37,7 +37,7 @@ data=pd.read_csv(os.path.join(dataDir,siteFile),
                    names=['RE','site'])
 siteLengths =[ len(s) for s in data['site'] ]
 data['length']=pd.Series(siteLengths)
-print(data.describe())
+print('\n',data.describe())
 
 # create site length histogram
 data[['length']].hist(bins=20)
@@ -48,7 +48,7 @@ charSet = set( sitesConcat ).difference({'A','C','G','T','N'})
 charList = list(charSet)
 charList.sort()
 charList = ['A','C','G','T','N'] + charList
-print( 'character set:', charList )
+print( '\ncharacter set:', charList )
 
 # count character use and plot
 charCounts = []
