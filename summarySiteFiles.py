@@ -11,7 +11,7 @@ delimiter:
 will create a data frame and save if requested that contains :
 
 1) the unique RE name 
-2) the site sequence (if all in agreement)
+2) the site sequences 
 3) list of files contained in
  
 for now, will remove cut site symbol from strings, so character list is 
@@ -42,12 +42,12 @@ import matplotlib.pyplot as plt
 '''
 
 # data file name and directory
-siteFileList = ['proto.csv',
+siteFileList = ['bionet.csv',
                 ]
 dataDir = '/home/allen/projects/DATA/bsp' # '.'
 
 # character separating columns---what if not same in all files?
-delimitChar = ' '   #   ','  or '\t'. what if
+delimitChar = '\t'   #   ','  or '\t'. what if
 
 ###############################################################################
 ################ DOT NOT CHANGE ANYTHING UNDER THIS SEPARATOR #################
@@ -63,21 +63,21 @@ for fileName in siteFileList:
     data['length']=pd.Series(siteLengths)
     print(data.describe())
 
-# create site length histogram
-data[['length']].hist(bins=20)
-
-# now create character use list, print
-sitesConcat = ''.join(data.site)
-charSet = set( sitesConcat ).difference({'A','C','G','T','N'})
-charList = list(charSet)
-charList.sort()
-charList = ['A','C','G','T','N'] + charList
-print( '\ncharacter set:', charList )
-
-# count character use and plot
-charCounts = []
-for c in charList:
-    charCounts.append( sitesConcat.count(c) )
-plt.figure(2)
-plt.title('character use')
-plt.bar(range(len(charCounts)),charCounts,tick_label=charList) 
+    # create site length histogram
+    data['length'].hist(bins=20)
+    
+    # now create character use list, print
+    sitesConcat = ''.join(data.site)
+    charSet = set( sitesConcat ).difference({'A','C','G','T','N'})
+    charList = list(charSet)
+    charList.sort()
+    charList = ['A','C','G','T','N'] + charList
+    print( '\ncharacter set:', charList )
+    
+    # count character use and plot
+    charCounts = []
+    for c in charList:
+        charCounts.append( sitesConcat.count(c) )
+    plt.figure(2)
+    plt.title('character use')
+    plt.bar(range(len(charCounts)),charCounts,tick_label=charList) 
