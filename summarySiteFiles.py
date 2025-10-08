@@ -42,42 +42,44 @@ import matplotlib.pyplot as plt
 '''
 
 # data file name and directory
-siteFileList = ['bionet.csv',
+siteFileList = [
+                    
+                    { 'file': 'F17.txt',
+                     'cols': (0,1),
+                     'sep': ',' 
+                     },
+        
+                    { 'file': 'F23.txt',
+                     'cols': (0,1),
+                     'sep': '\t' 
+                     },
+                    
+                    { 'file': 'F29.txt',
+                     'cols': (0,1),
+                     'sep': ',' 
+                     },
+                    
+                    { 'file': 'F33.txt',
+                     'cols': (0,1),
+                     'sep': ',' 
+                     }
                 ]
+
 dataDir = '/home/allen/projects/DATA/bsp' # '.'
 
-# character separating columns---what if not same in all files?
-delimitChar = '\t'   #   ','  or '\t'. what if
 
 ###############################################################################
 ################ DOT NOT CHANGE ANYTHING UNDER THIS SEPARATOR #################
 ###############################################################################
 
 # read, add length column and print stats
-for fileName in siteFileList:
-    print("now reading",fileName)
-    data=pd.read_csv(os.path.join(dataDir,fileName),
-                     delimiter=delimitChar,
+for dataDict in siteFileList:
+    print("now reading",dataDict['file'])
+    data=pd.read_csv(os.path.join(dataDir,dataDict['file']),
+                     usecols=dataDict['cols'],
+                     sep=dataDict['sep'],
                      names=['RE','site'])
     siteLengths =[ len(s) for s in data['site'] ]
     data['length']=pd.Series(siteLengths)
     print(data.describe())
 
-    # create site length histogram
-    data['length'].hist(bins=20)
-    
-    # now create character use list, print
-    sitesConcat = ''.join(data.site)
-    charSet = set( sitesConcat ).difference({'A','C','G','T','N'})
-    charList = list(charSet)
-    charList.sort()
-    charList = ['A','C','G','T','N'] + charList
-    print( '\ncharacter set:', charList )
-    
-    # count character use and plot
-    charCounts = []
-    for c in charList:
-        charCounts.append( sitesConcat.count(c) )
-    plt.figure(2)
-    plt.title('character use')
-    plt.bar(range(len(charCounts)),charCounts,tick_label=charList) 
