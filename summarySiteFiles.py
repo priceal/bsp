@@ -42,30 +42,10 @@ import matplotlib.pyplot as plt
 '''
 
 # data file name and directory
-siteFileList = [
-                    
-                    { 'file': 'F17.txt',
-                     'cols': (0,1),
-                     'sep': ',' 
-                     },
-        
-                    { 'file': 'F23.txt',
-                     'cols': (0,1),
-                     'sep': '\t' 
-                     },
-                    
-                    { 'file': 'F29.txt',
-                     'cols': (0,1),
-                     'sep': ',' 
-                     },
-                    
-                    { 'file': 'F33.txt',
-                     'cols': (0,1),
-                     'sep': ',' 
-                     }
+fileList = [ 'gcg.csv', 'itype2.csv', 'strider.csv'
                 ]
 
-dataDir = '/home/allen/projects/DATA/bsp' # '.'
+dataDir = '/home/allen/projects/bsp/data' # '.'
 
 
 ###############################################################################
@@ -73,13 +53,25 @@ dataDir = '/home/allen/projects/DATA/bsp' # '.'
 ###############################################################################
 
 # read, add length column and print stats
-for dataDict in siteFileList:
-    print("now reading",dataDict['file'])
-    data=pd.read_csv(os.path.join(dataDir,dataDict['file']),
-                     usecols=dataDict['cols'],
-                     sep=dataDict['sep'],
+dataList = []
+for i,file in enumerate(fileList):
+    print("now reading",file)
+    dataList.append(pd.read_csv(os.path.join(dataDir,file),
+                     usecols=(0,1),
+                     sep=',',
                      names=['RE','site'])
-    siteLengths =[ len(s) for s in data['site'] ]
-    data['length']=pd.Series(siteLengths)
-    print(data.describe())
+                    )
+    siteLengths =[ len(s) for s in dataList[i]['site'] ]
+    dataList[i]['length']=pd.Series(siteLengths)
+    
+for fn,frame in zip(fileList,dataList):
+    print('\n'+fn)
+    print(frame.describe())
+    reSet =  set(frame['RE'])
+    print( 'unique REs:', )
+    
+    uniqNames = uniqNames.union(  )
+
+# create set of unique names
+
 

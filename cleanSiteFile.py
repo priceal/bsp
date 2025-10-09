@@ -1,7 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-clean site file
+cleans site data file and saves it in two column CSV format.
+specify which columns to input and separator (delimiter) using
+key words 'cols' and 'sep'
+
+options include 
+ (1) making RE names or site sequences upper or lower case.
+ (2) removing or stripping characters from RE names or site sequences
+ (3) the name for the saved file
+ 
+for initial inspection of data file, set all options to None
+
 """
 import os
 import pandas as pd
@@ -10,47 +20,59 @@ import pandas as pd
 ###############################################################################
 ###############################################################################
 '''
-# data file name and directory
-dataDict =    { 'file': 'F29.txt',
-                'cols': (0,1),
-                'sep' : ',' 
+# particulars of input data (required)
+dataDict =    { 'file': 'itype2.txt',
+                'cols': (0,2),
+                'sep' : '\t' 
                }
 dataDir = '/home/allen/projects/DATA/bsp' 
 
-# name for new file created
-saveName = 'testfile.csv'    # use None if not saving
+# option: chose str.upper or str.lower for case
+# use None to not alter case
+nameCase = str.lower
+siteCase = str.upper
 
-# options
-lowerCase = True    # start with False
-nameStripChars = '+'         # start with ''
+# option: chars to remove --- set to '' or None to not strip any
+nameStripChars = ''
+siteStripChars = "^/1234567890()-,"
+'''
+nameStripChars = '+'
 siteStripChars = '|()-1234567890/'
+'''
+
+# option: name for new file created --- use None if not saving
+saveName = 'data/itype2.csv'    
+#saveName = None
 
 ###############################################################################
 ################ DOT NOT CHANGE ANYTHING UNDER THIS SEPARATOR #################
 ###############################################################################
 
-# read, add length column and print stats
 print("now reading",dataDict['file'])
 data=pd.read_csv(os.path.join(dataDir,dataDict['file']),
                  usecols=dataDict['cols'],
                  sep=dataDict['sep'],
-                 names=['RE','site'])
+                 names=['RE','site'],
+                 engine='python')
 
-if lowerCase:
-    data[ 'RE' ] = data[ 'RE' ].apply(str.lower)
-    data[ 'site' ] = data[ 'site' ].apply(str.lower)
-   
-for c in nameStripChars:
-    data[ 'RE' ] = data[ 'RE' ].apply( str.replace, args=(c,'') )
+if nameCase:
+    data[ 'RE' ] = data[ 'RE' ].apply(nameCase)
 
-for c in siteStripChars:
-    data[ 'site' ] = data[ 'site' ].apply( str.replace, args=(c,'') )
+if siteCase:
+    data[ 'site' ] = data[ 'site' ].apply(siteCase)
 
-print(data.describe())
+if nameStripChars:
+    for c in nameStripChars:
+        data[ 'RE' ] = data[ 'RE' ].apply( str.replace, args=(c,'') )
+
+if siteStripChars:
+    for c in siteStripChars:
+        data[ 'site' ] = data[ 'site' ].apply( str.replace, args=(c,'') )
+
 if saveName:
-    data.to_csv(saveName, index=False)
+    data.to_csv(saveName, index=False, header=False)
     
-    
+print(data.describe())    
     
     
     

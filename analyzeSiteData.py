@@ -21,11 +21,11 @@ import matplotlib.pyplot as plt
 '''
 
 # data file name and directory
-siteFile = 'proto.csv'
-dataDir = '/home/allen/projects/DATA/bsp' # '.'
+siteFile = 'gcg.csv'
+dataDir = '/home/allen/projects/bsp/data' # '.'
 
 # character separating columns
-delimitChar = ' '   #   ','  or '\t'
+delimitChar = ','   #   ','  or '\t'
 
 ###############################################################################
 ################ DOT NOT CHANGE ANYTHING UNDER THIS SEPARATOR #################
@@ -44,8 +44,7 @@ data[['length']].hist(bins=20)
 
 # now create character use list, print
 sitesConcat = ''.join(data.site)
-charSet = set( sitesConcat ).difference({'A','C','G','T','N'})
-charList = list(charSet)
+charList = list( set( sitesConcat ).difference({'A','C','G','T','N'}) )
 charList.sort()
 charList = ['A','C','G','T','N'] + charList
 print( '\ncharacter set:', charList )
