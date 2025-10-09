@@ -63,15 +63,22 @@ for i,file in enumerate(fileList):
                     )
     siteLengths =[ len(s) for s in dataList[i]['site'] ]
     dataList[i]['length']=pd.Series(siteLengths)
+    dataList[i]['source']=pd.Series( [file]*len(dataList[i]) )
     
 for fn,frame in zip(fileList,dataList):
     print('\n'+fn)
     print(frame.describe())
-    reSet =  set(frame['RE'])
-    print( 'unique REs:', )
-    
-    uniqNames = uniqNames.union(  )
 
-# create set of unique names
+# now group by RE name
+dataAll = pd.concat( dataList, ignore_index=True)
+dataGroups = dataAll.groupby(by='RE')
+groupCounts = dataGroups.apply(len)
+
+# now we can remove duplicates, with same RE name and same site
+dataAllNoDupes=dataAll.drop_duplicates( subset=['RE','site'] )
+noDupesGroups= dataAllNoDupes.groupby(by='RE')
+
+
+
 
 
