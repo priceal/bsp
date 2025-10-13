@@ -31,6 +31,15 @@ finally, will print out:
     site length stats
     histogram of site lengths
     histogram of character use in site strings
+    
+    
+notes: 
+    
+    1) format 15 has multiple entries for promiscuous REs, eschewing use of
+ambiguity code
+
+    2) format 2 has flanking Ns and lists reverse complement for some
+
 """
 import os
 import pandas as pd
@@ -41,11 +50,11 @@ import matplotlib.pyplot as plt
 ###############################################################################
 '''
 
-# data file name and directory
-fileList = [ 'gcg.csv', 'itype2.csv', 'strider.csv'
-                ]
+# data file names and directory
+fileList = [ 'Format5_C.csv', 'Format8_C.csv',
+            'Format17_C.csv'   ]
 
-dataDir = '/home/allen/projects/bsp/data' # '.'
+dataDir = '/home/allen/projects/bsp/kylie'
 
 
 ###############################################################################
@@ -61,23 +70,39 @@ for i,file in enumerate(fileList):
                      sep=',',
                      names=['RE','site'])
                     )
+    
+    # add columns for site length and source file
     siteLengths =[ len(s) for s in dataList[i]['site'] ]
     dataList[i]['length']=pd.Series(siteLengths)
     dataList[i]['source']=pd.Series( [file]*len(dataList[i]) )
-    
+
+# print stats on all data sets    
 for fn,frame in zip(fileList,dataList):
     print('\n'+fn)
     print(frame.describe())
 
-# now group by RE name
-dataAll = pd.concat( dataList, ignore_index=True)
-dataGroups = dataAll.groupby(by='RE')
-groupCounts = dataGroups.apply(len)
+# now concatenate and strip off preliminary and terminal Ns
+dataRaw = pd.concat( dataList, ignore_index=True )
+siteStripped = dataRaw[ ['site'] ].map( lambda x: x.strip('N') )
+dataAll = dataRaw
+dataAll[ 'site' ] = siteStripped
 
+# group by RE name and count how many have multi entries
+dataGroup = dataAll.groupby(by='RE')
+groupCount = dataGroup.apply(len)
+groupsMulti = groupCount[ groupCount >1 ]
+
+# print out REs with inconsistent sites
+for k in groupsMulti.index:
+    names = set( dataGroup.get_group(k)['site'] )
+    if len(names)>1:
+        print(dataGroup.get_group(k))
+
+'''
 # now we can remove duplicates, with same RE name and same site
 dataAllNoDupes=dataAll.drop_duplicates( subset=['RE','site'] )
 noDupesGroups= dataAllNoDupes.groupby(by='RE')
-
+'''
 
 
 
