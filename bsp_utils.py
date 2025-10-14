@@ -8,6 +8,7 @@ utilities for ssp
     
 """
 import numpy as np
+import pandas as pd
 import torch
 from torch.utils.data import Dataset
 
@@ -69,67 +70,42 @@ def encode(string, vocab=" ARNDCEQGHILKMFPSTWYV", length=100):
 
 
 #######################################################################
-def dataReader(filePath, lengths=(0,800), crop=800, onehot=(False,False)):
+def dataReader(filePath, siteCrop=15, sequenceCrop=500, 
+               siteVocab = ' ACGTNUWSMKRYBDHV', 
+               aaVocab = " ARNDCEQGHILKMFPSTWYV" ):
     '''
-    reads text file of protein sequences with ss assignments.
-    format of file should be each entry 2 lines, the first is the sequence
-    and the second is the secondary struture (target). Assumes ss assignments
-    are from (H,E,C). If not, must modify below.
+    reads text file of protein site, sequences data.
+    format of file should be RE, site, sequence, with first line the header
     
     Args:
         filePath (string): input file path.
-        lengths (tuple, optional): (min,max) rejects sequences outside range
-        Defaults to (0,800).
-        crop (integer, optional): all output sequences will be this length, 
-        either cropped or padded. Defaults to 800.
-        onehot (boolean,boolean): True returns one hot rep, else numerical encoding,
-        first for the input data, second for the target
+        siteCrop (TYPE, optional): DESCRIPTION. Defaults to 15.
+        sequenceCrop (TYPE, optional): DESCRIPTION. Defaults to 500.
 
     Returns:
-        tensor, tensor: the first is the one-hot rep of the sequence of size
-        NxM where N=number of sequences and M=length of sequence vocab, and 
-        the second is the one-hot rep of the secondary structure of size NxK
-        where K=length of ss vocab (here assumed 3)
+        tensor, tensor: first is data in shape (N,sequenceCrop), the second
+        is target in shape (N, siteCrop)
     '''
-    minLen,maxLen = lengths
-    with open(filePath, 'r') as f:
-        seq = []
-        tar = []
-        while True:
-            sequence = f.readline()[:-1]   # remove trailing newline
-            if sequence == '':    # test if EOF
-                break     
-            target = f.readline()[:-1]
-            if not minLen<=len(sequence)<=maxLen:   # reject if outside range
-                continue
-            # reduce to crop or fill in with spaces to crop, padding on right
-            sequence = f'{sequence[:crop]:<{crop}}'   
-            target = f'{target[:crop]:<{crop}}'
-            # convert data strings to one-hot, add to lists of one-hot reps, 
-            # creating lists of crop x len(vocab) arrays. note on padding:
-            # space is recognized as padding and sent to one hot vector <0>
-            if onehot[0]:
-                seq.append(oneHot(sequence, vocab="ARNDCEQGHILKMFPSTWYV"))
-            else:
-                seq.append(encode(sequence, vocab=" ARNDCEQGHILKMFPSTWYV"))
-            if onehot[1]:
-                tar.append(oneHot(target, vocab="HEC"))
-            else:
-                tar.append(encode(target, vocab=" HEC"))
-  
-        if onehot[0]:
-            seqType= torch.float
-        else:
-            seqType= torch.int
-        if onehot[1]:
-            tarType= torch.float
-        else:
-            tarType= torch.int
-
-    # return tensors
+    dataDf = pd.read_csv( filePath )
     
-    return torch.tensor(np.array(seq), dtype=seqType, requires_grad=False), \
-        torch.tensor(np.array(tar), dtype=tarType, requires_grad=False)
+    siteList=[]
+    sequenceList=[]
+    for i in dataDf.index:
+        sequenceList.append(
+                encode(
+                dataDf.at[i,'sequence'],
+                vocab=aaVocab,
+                length=sequenceCrop)
+            )
+        siteList.append(
+                encode(
+                dataDf.at[i,'site'],
+                vocab=siteVocab,
+                length=siteCrop)
+            )
+
+    return torch.tensor(np.array(sequenceList), dtype=torch.int, requires_grad=False), \
+        torch.tensor(np.array(siteList), dtype=torch.int, requires_grad=False)
 
 ###############################################################################
 class seqDataset(Dataset):

@@ -5,44 +5,54 @@
     
 """
 import pandas as pd
-import numpy as np
-import torch
-import bsp_utils as bsp
 import os
+import matplotlib.pyplot as plt
 '''
 ###############################################################################
 ###############################################################################
 ###############################################################################
 '''
 
-dataFile = 'goldAndProto.csv'
-dataDir = '/home/allen/projects/DATA/bsp'
+dataFile = 'F5-8-17_gold.csv'
+dataDir = '.'
 
-siteVocab = ' ^ACGTUWSMKRYBDHVN'
+siteVocab = ' ACGTNUWSMKRYBDHV'
 aaVocab = " ARNDCEQGHILKMFPSTWYV"
-
-cropLength = 500
+  
+sequenceCrop = 500
+siteCrop = 15
 ###############################################
-data=pd.read_csv(os.path.join(dataDir,dataFile),index_col=0)
-maxSiteLength =  max( [ len(s) for s in data['site'] ] )
-maxSeqLength = max( [ len(s) for s in data['sequence'] ] )
+data=pd.read_csv(os.path.join(dataDir,dataFile))
+siteLength =  [ len(s) for s in data['site'] ] 
+seqLength = [ len(s) for s in data['sequence'] ] 
 
-siteList=[]
-sequenceList=[]
-for i in data.index:
-    sequenceList.append(
-        bsp.encode(
-            data.at[i,'sequence'],
-            vocab=aaVocab,
-            length=cropLength)
-        )
-    siteList.append(
-        bsp.encode(
-            data.at[i,'site'],
-            vocab=siteVocab,
-            length=cropLength)
-        )
-sequenceTensor=torch.tensor(np.array(sequenceList))
-siteTensor=torch.tensor(np.array(siteList))    
+data['site length']=pd.Series(siteLength)
+data['seq length']=pd.Series(seqLength)
 
-data['seqlen']=pd.Series([ len(s) for s in data['sequence'] ])
+print('\n',data.describe())
+
+# create data frame with sequence lengths, print stats
+seqCounts = [0]*len(aaVocab)
+siteCounts = [0]*len(siteVocab)
+for idx in data.index:
+  
+    # count and increment character use
+    for i,c in enumerate(aaVocab):
+        seqCounts[i] += data.loc[idx]['sequence'].count(c)
+    for i,c in enumerate(siteVocab):
+        siteCounts[i] += data.loc[idx]['site'].count(c)
+
+data[['site length','seq length']].hist()
+
+# now print characters and plot use
+print( '\ncharacter set:', list(aaVocab) )
+plt.figure(2)
+plt.title('sequence character use')
+plt.bar(range(len(seqCounts)),seqCounts,tick_label=list(aaVocab)) 
+
+# now print characters and plot use
+print( '\ncharacter set:', list(siteVocab) )
+plt.figure(3)
+plt.title('site character use')
+plt.bar(range(len(siteCounts)),siteCounts,tick_label=list(siteVocab)) 
+

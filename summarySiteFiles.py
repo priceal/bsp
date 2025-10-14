@@ -54,26 +54,33 @@ import matplotlib.pyplot as plt
 fileList = [ 'Format5_C.csv', 'Format8_C.csv',
             'Format17_C.csv'   ]
 
+excludeList = [ 'lpnpi' ]
+
 dataDir = '/home/allen/projects/bsp/kylie'
 
+saveName = 'F5-8-17.csv'
 
 ###############################################################################
 ################ DOT NOT CHANGE ANYTHING UNDER THIS SEPARATOR #################
 ###############################################################################
 
 # read, add length column and print stats
-dataList = []
+dataList=[]
 for i,file in enumerate(fileList):
     print("now reading",file)
-    dataList.append(pd.read_csv(os.path.join(dataDir,file),
+    dataList.append(
+                     pd.read_csv(os.path.join(dataDir,file),
                      usecols=(0,1),
                      sep=',',
                      names=['RE','site'])
                     )
+    # strip prelim/terminal Ns
+    dataList[i]['site'] = dataList[i]['site'].map( lambda x: x.strip('N') )
     
     # add columns for site length and source file
-    siteLengths =[ len(s) for s in dataList[i]['site'] ]
-    dataList[i]['length']=pd.Series(siteLengths)
+    dataList[i]['length']=pd.Series(
+                                    [ len(s) for s in dataList[i]['site'] ]
+                                    )
     dataList[i]['source']=pd.Series( [file]*len(dataList[i]) )
 
 # print stats on all data sets    
@@ -81,11 +88,15 @@ for fn,frame in zip(fileList,dataList):
     print('\n'+fn)
     print(frame.describe())
 
-# now concatenate and strip off preliminary and terminal Ns
-dataRaw = pd.concat( dataList, ignore_index=True )
-siteStripped = dataRaw[ ['site'] ].map( lambda x: x.strip('N') )
-dataAll = dataRaw
-dataAll[ 'site' ] = siteStripped
+# now concatenate
+dataAll = pd.concat( dataList, ignore_index=True )
+
+# remove duplicates
+dataAll.drop_duplicates(subset=['RE','site'],keep='first',inplace=True)
+
+# remove exclude list
+for name in excludeList:
+    dataAll = dataAll[ dataAll['RE'] != name ]
 
 # group by RE name and count how many have multi entries
 dataGroup = dataAll.groupby(by='RE')
@@ -98,6 +109,7 @@ for k in groupsMulti.index:
     if len(names)>1:
         print(dataGroup.get_group(k))
 
+dataAll.to_csv(saveName,header=True,index=False)
 '''
 # now we can remove duplicates, with same RE name and same site
 dataAllNoDupes=dataAll.drop_duplicates( subset=['RE','site'] )

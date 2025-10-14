@@ -19,52 +19,44 @@ import matplotlib.pyplot as plt
 ###############################################################################
 ###############################################################################
 '''
-# data file name and directory
+# source data file name and directory for sequence, format
 sequenceFile = 'Type_II_restriction_enzymes_Gold_Standards_Protein.txt'
-dataDir = '/home/allen/projects/DATA/bsp'
+sequenceDir = '/home/allen/projects/DATA/bsp'
+sequenceFormat = 'fasta'  # if error message, try 'fasta-pearson'
 
-# option to print sequence names as processed
-printNames = True  
-reportCycle = 1000
+# source data for site data
+siteFile = 'F5-8-17.csv'
+siteDir = '.'
 
-# file format
-fileFormat = 'fasta'  # if error message, try 'fasta-pearson'
+# name for saved data file
+saveFileName = 'F5-8-17_gold.csv'
 
 ###############################################################################
 ################ DOT NOT CHANGE ANYTHING UNDER THIS SEPARATOR #################
 ###############################################################################
 
+# read in site file, create set of RE names
+siteDf = pd.read_csv(os.path.join(siteDir,siteFile))
+siteSet = set( siteDf['RE'] )
+
 # read in sequence file
-record = SeqIO.parse(os.path.join(dataDir,sequenceFile),fileFormat)
+record = SeqIO.parse(os.path.join(sequenceDir,sequenceFile),sequenceFormat)
 
 # create data frame with sequence lengths, print stats
-reNames = []
-seqLengths = []
-charCounts = [0]*20
-step = 0
-chars = "ARNDCEQGHILKMFPSTWYV"
+sequences = []
+names=[]
+sites=[]
+count=0
 for rec in record:
-    reNames.append(rec.name.lower())
-    seqLengths.append( len(rec.seq) )
-  
-    # count and increment character use
-    for i,c in enumerate(chars):
-        charCounts[i] += rec.seq.count(c)
-        
-    # print out RE name if needed
-    if step % reportCycle == 0:
-        if printNames:
-            print(step,rec.name)
-            
-    step += 1
-
+    count+=1
+    if rec.name.lower() in siteSet:
+        sequences.append( str(rec.seq) )
+        names.append( rec.name )
+        sites.append( 
+            siteDf[ siteDf['RE']==rec.name.lower() ]['site'].iloc[0] 
+                    )
 # create dataframe, print stats and plot length histogram
-dataDf = pd.DataFrame( { 'RE': reNames, 'length': seqLengths } )
-print('\n\n',dataDf.describe())
-dataDf[['length']].hist(bins=20)
+dataDf = pd.DataFrame( { 'RE': names, 'site': sites, 'sequence': sequences} )
+print(dataDf.describe() )
+dataDf.to_csv(saveFileName,header=True, index=False)
 
-# now print characters and plot use
-print( '\ncharacter set:', list(chars) )
-plt.figure(2)
-plt.title('character use')
-plt.bar(range(len(charCounts)),charCounts,tick_label=list(chars)) 
