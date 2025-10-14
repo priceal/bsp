@@ -70,7 +70,7 @@ def encode(string, vocab=" ARNDCEQGHILKMFPSTWYV", length=100):
 
 
 #######################################################################
-def dataReader(filePath, siteCrop=15, sequenceCrop=500, 
+def dataReader(filePath, site=(0,15,15), seq=(0,500,500), 
                siteVocab = ' ACGTNUWSMKRYBDHV', 
                aaVocab = " ARNDCEQGHILKMFPSTWYV" ):
     '''
@@ -87,6 +87,15 @@ def dataReader(filePath, siteCrop=15, sequenceCrop=500,
         is target in shape (N, siteCrop)
     '''
     dataDf = pd.read_csv( filePath )
+    siteMin, siteMax, siteCrop = site
+    seqMin, seqMax, seqCrop = seq
+    
+    # filter on site/seq lengths
+    dataDf = dataDf[ dataDf.site.str.len() >= siteMin ]
+    dataDf = dataDf[ dataDf.site.str.len() <= siteMax ]
+    dataDf = dataDf[ dataDf.sequence.str.len() >= seqMin ]
+    dataDf = dataDf[ dataDf.sequence.str.len() <= seqMax ]
+
     
     siteList=[]
     sequenceList=[]
@@ -95,7 +104,7 @@ def dataReader(filePath, siteCrop=15, sequenceCrop=500,
                 encode(
                 dataDf.at[i,'sequence'],
                 vocab=aaVocab,
-                length=sequenceCrop)
+                length=seqCrop)
             )
         siteList.append(
                 encode(
@@ -105,7 +114,8 @@ def dataReader(filePath, siteCrop=15, sequenceCrop=500,
             )
 
     return torch.tensor(np.array(sequenceList), dtype=torch.int, requires_grad=False), \
-        torch.tensor(np.array(siteList), dtype=torch.int, requires_grad=False)
+        torch.tensor(np.array(siteList), dtype=torch.int, requires_grad=False), \
+        dataDf
 
 ###############################################################################
 class seqDataset(Dataset):

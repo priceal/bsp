@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['bsp_utils.py', 'summarySiteFiles.py', 'cleanSiteFile.py', 'analyzeSiteData.py', 'data/itype2.csv', 'test.csv']
+recent_files = ['bsp_utils.py', 'testData.py', 'model_20251014.py']
 
 [main]
 version = 0.2.0
