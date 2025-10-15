@@ -41,12 +41,12 @@ from model_20251014 import bspModel
 # learning parameters
 numBatches = 1 # if non-zero, ignore batchSize and set to N/numBatches
 batchSize = 0 # only use if numBatches = 0
-numberEpochs = 3
+numberEpochs = 200
 learningRate = 0.1
 
 reportCycle = 1
 
-refine = False  # creates new model if False
+refine = True  # creates new model if False
 weights = None    # None: unweighted. 
                     # (WH, WE, WC): use fixed weights
                     # 'calc' : calculated weights to use
@@ -59,7 +59,8 @@ fileDirectory = '.'
 sequenceLimits = (100,600,502)  # screen data for seq lengths in this interval
 siteLimits = (4,10,6)  # screen data for seq lengths in this interval
 
-
+siteVocab = 'NACGTUWSMKRYBDHV'    # uses N as padding as well as internal N
+aaVocab = " ARNDCEQGHILKMFPSTWYV" 
 ###########################################################################
 ###########################################################################
 ###########################################################################
@@ -155,14 +156,8 @@ for i in range(numberEpochs):
         
         # print out if report cycle done
         if stepCount % reportCycle == 0:
-            
-            # calc test loss
-            testPrediction = model( xTest ) 
-            testLossTerms = -yTest*torch.log(testPrediction,)*weights
-            testLoss = testLossTerms.sum()/yTest.shape.numel() # normalize by num of AAs
-            print(f"{i:<10} {j:<10} {loss.item():<10.5} {testLoss.item():<10.5}")
+            print(f"{i:<10} {j:<10} {loss.item():<10.5} ")
             plt.plot([stepCount], [loss.item()], '.k')
-            plt.plot([stepCount], [testLoss.item()], '.r')
         
         stepCount += 1
 
@@ -173,9 +168,9 @@ plt.show()
 # must convert probability-logits to one-hots ---
 # convert max logit value to 1, others 0
 print('\nFINAL METRICS')
-titles = ['training','test']
-xSets = [ xTrain, xTest ]
-ySets = [ yTrain, yTest ]
+titles = ['training']
+xSets = [ xTrain ]
+ySets = [ yTrain ]
 for t,xs,ys in zip(titles,xSets,ySets):
 
     # problem: whenever zero-padding is encountered, argmax returns class 0!
@@ -188,12 +183,12 @@ for t,xs,ys in zip(titles,xSets,ySets):
     pCheck = np.argmax(prediction.detach().numpy(), axis=1).flatten()
     cm = confusion_matrix(yCheck, pCheck, sample_weight=mask)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm,
-                                  display_labels=targetLabels)
+                                  display_labels=siteVocab)
     disp.plot()
     recall = np.diagonal(cm)/cm.sum(axis=1)
     precision = np.diagonal(cm)/cm.sum(axis=0)
     print('{:10} {:10} {:10}'.format('class', 'recall', 'precision'))
-    for n, r, p in zip(targetLabels, recall, precision):
+    for n, r, p in zip(siteVocab, recall, precision):
         print(f'{n:<10} {r:<10.4} {p:<10.4}')
         
 

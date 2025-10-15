@@ -51,7 +51,7 @@ class bspModel(torch.nn.Module):
         super(bspModel, self).__init__()
 
         # encoding and embedding parameters
-        self.siteCodeSize = 17    # binding site code
+        self.siteCodeSize = 16    # binding site code
         self.aaCodeSize = 21      # aa code
         self.padidx = 0           # change this for another padding index
         self.ed = 5               # embedding dimension
@@ -92,13 +92,17 @@ class bspModel(torch.nn.Module):
         self.conv = torch.nn.ModuleList( convLayers )
         self.batch = torch.nn.ModuleList( batchLayers )
         
+        self.pooling = torch.nn.MaxPool1d(2, stride=2)
+        self.relu = torch.nn.ReLU()
+        
+
         self.outLayer = torch.nn.Conv1d(in_channels=4,
-                                       out_channels=4,
+                                       out_channels=self.siteCodeSize,
                                        kernel_size=11,
                                        stride=1,
                                        bias=False,
                                        padding='valid' )
-        self.outBatch = torch.nn.BatchNorm1d(num_features=4)
+        self.outBatch = torch.nn.BatchNorm1d(num_features=self.siteCodeSize)
         self.outActiv = torch.nn.Softmax( dim = 1 )
 
     ###########################################################################
@@ -127,12 +131,13 @@ class bspModel(torch.nn.Module):
         for cl, bl in zip( self.conv, self.batch ):
             x = cl(x)
             x = bl(x)
-            x = torch.nn.MaxPool1d(2, stride=2)
-            x = torch.nn.ReLU(x)
+            x = self.pooling(x)
+            x = self.relu(x)
+            
  
         x = self.outLayer(x)
         x = self.outBatch(x)
-        x = torch.nn.MaxPool1d(2, stride=2)
+        x = self.pooling(x)
         x = self.outActiv(x)
 
 

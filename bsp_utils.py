@@ -23,16 +23,20 @@ def oneHot(string, vocab=" ARNDCEQGHILKMFPSTWYV", length=100):
     (or space) will return as a zero vector.
 
     Args:
-        string (TYPE): input sequence
+        string (TYPE): input sequence, any spaces will be replaced with 
+        padding char
         vocab (TYPE, optional): symbol list. order defines encoding. 
-        Defaults to " ARNDCEQGHILKMFPSTWYV".
+        Defaults to " ARNDCEQGHILKMFPSTWYV". expacts first character to be
+        padding..
 
     Returns:
         array: NxM where N is length of input string and M is length of vocab 
         string
 
     '''
-    string = f'{string[:length]:<{length}}'   
+    # crop and left justify, extending to length if needed, replace all 
+    # spaces with padding char
+    string = f'{string[:length]:<{length}}'.replace(' ',vocab[0])
     result = []
     for c in string:
         code = np.zeros(len(vocab))
@@ -50,16 +54,20 @@ def encode(string, vocab=" ARNDCEQGHILKMFPSTWYV", length=100):
     create numeric encoding for the string. 
 
     Args:
-        string (TYPE): input sequence
+        string (str): input sequence, any spaces will be replaced with 
+        padding char - assumed first char in vocab string
         vocab (TYPE, optional): symbol list. order defines encoding. 
-        Defaults to " ARNDCEQGHILKMFPSTWYV", which assumes padding is space
-        and assigns to index 0
+        Defaults to " ARNDCEQGHILKMFPSTWYV". expacts first character to be
+        padding..
 
     Returns:
         array: N where N is length of input string
 
     '''
-    string = f'{string[:length]:<{length}}'   
+    # crop and left justify, extending to length if needed, replace all 
+    # spaces with padding char
+    string = f'{string[:length]:<{length}}'.replace(' ',vocab[0])
+
     result = []
     for c in string:
         if c not in vocab:
@@ -72,7 +80,7 @@ def encode(string, vocab=" ARNDCEQGHILKMFPSTWYV", length=100):
 
 #######################################################################
 def dataReader(filePath, site=(0,15,15), seq=(0,500,500), 
-               siteVocab = ' ACGTNUWSMKRYBDHV', 
+               siteVocab = 'NACGTUWSMKRYBDHV', 
                aaVocab = " ARNDCEQGHILKMFPSTWYV" ):
     '''
     reads text file of protein site, sequences data.
