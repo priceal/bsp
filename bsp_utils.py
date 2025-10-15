@@ -17,7 +17,7 @@ from torch.utils.data import Dataset
 ######################### functions/classes ###################################
 ###############################################################################
 '''
-def oneHot(string, vocab="ARNDCEQGHILKMFPSTWYV"):
+def oneHot(string, vocab=" ARNDCEQGHILKMFPSTWYV", length=100):
     '''
     create the one-hot array for the string. Any un-recognized character 
     (or space) will return as a zero vector.
@@ -25,13 +25,14 @@ def oneHot(string, vocab="ARNDCEQGHILKMFPSTWYV"):
     Args:
         string (TYPE): input sequence
         vocab (TYPE, optional): symbol list. order defines encoding. 
-        Defaults to "ARNDCEQGHILKMFPSTWYV".
+        Defaults to " ARNDCEQGHILKMFPSTWYV".
 
     Returns:
         array: NxM where N is length of input string and M is length of vocab 
         string
 
     '''
+    string = f'{string[:length]:<{length}}'   
     result = []
     for c in string:
         code = np.zeros(len(vocab))
@@ -86,7 +87,11 @@ def dataReader(filePath, site=(0,15,15), seq=(0,500,500),
         tensor, tensor: first is data in shape (N,sequenceCrop), the second
         is target in shape (N, siteCrop)
     '''
-    dataDf = pd.read_csv( filePath )
+    try:
+        dataDf = pd.read_csv( filePath )
+    except:
+        print('error reading data frame:', filePath)
+        
     siteMin, siteMax, siteCrop = site
     seqMin, seqMax, seqCrop = seq
     
@@ -96,7 +101,6 @@ def dataReader(filePath, site=(0,15,15), seq=(0,500,500),
     dataDf = dataDf[ dataDf.sequence.str.len() >= seqMin ]
     dataDf = dataDf[ dataDf.sequence.str.len() <= seqMax ]
 
-    
     siteList=[]
     sequenceList=[]
     for i in dataDf.index:
@@ -107,7 +111,7 @@ def dataReader(filePath, site=(0,15,15), seq=(0,500,500),
                 length=seqCrop)
             )
         siteList.append(
-                encode(
+                oneHot(
                 dataDf.at[i,'site'],
                 vocab=siteVocab,
                 length=siteCrop)
