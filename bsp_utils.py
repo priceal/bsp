@@ -126,8 +126,7 @@ def dataReader(filePath, site=(0,15,15), seq=(0,500,500),
             )
 
     return torch.tensor(np.array(sequenceList), dtype=torch.int, requires_grad=False), \
-        torch.tensor(np.array(siteList), dtype=torch.int, requires_grad=False), \
-        dataDf
+        torch.tensor(np.array(siteList), dtype=torch.int, requires_grad=False)
 
 ###############################################################################
 class seqDataset(Dataset):

@@ -1,14 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-analyze a data file containing protein sequences
-format should be FASTA
-    
-output:
-    number of entries
-    site length stats
-    histogram of site lengths
-    histogram of character use in site strings
+combine a site data file and a sequence data file.
+site data file must be in csv format with one column 'RE' and the
+second one 'site'
+sequence data must be in fasta format with name of enzyme leading in title 
+line. for example:
+
+>AatII   GACGTC  345 aa
+
+Code will find intersection of RE names and create combined fill with only
+those
+
+also prints out stats on resulting dataframe
+  
 """
 import os
 import pandas as pd
@@ -22,14 +27,14 @@ import matplotlib.pyplot as plt
 # source data file name and directory for sequence, format
 sequenceFile = 'Type_II_restriction_enzymes_Gold_Standards_Protein.txt'
 sequenceDir = '/home/allen/projects/DATA/bsp'
-sequenceFormat = 'fasta'  # if error message, try 'fasta-pearson'
+sequenceFormat = 'fasta-pearson'  # if error message, try 'fasta-pearson'
 
 # source data for site data
 siteFile = 'F5-8-17.csv'
 siteDir = '.'
 
-# name for saved data file
-saveFileName = 'F5-8-17_gold.csv'
+# name for saved data file. 'None' to not save output
+saveFileName = None # 'F5-8-17_gold.csv'
 
 ###############################################################################
 ################ DOT NOT CHANGE ANYTHING UNDER THIS SEPARATOR #################
@@ -58,5 +63,6 @@ for rec in record:
 # create dataframe, print stats and plot length histogram
 dataDf = pd.DataFrame( { 'RE': names, 'site': sites, 'sequence': sequences} )
 print(dataDf.describe() )
-dataDf.to_csv(saveFileName,header=True, index=False)
+if saveFileName:
+    dataDf.to_csv(saveFileName,header=True, index=False)
 

@@ -35,57 +35,58 @@ from model_20251014 import bspModel
 ############################# main ############################################
 ###############################################################################
 '''
-
-
-
 # learning parameters
 numBatches = 1 # if non-zero, ignore batchSize and set to N/numBatches
 batchSize = 0 # only use if numBatches = 0
-numberEpochs = 200
+numberEpochs = 400
 learningRate = 0.1
-
 reportCycle = 1
-
-refine = True  # creates new model if False
+refine = True    # creates new model if False
 weights = None    # None: unweighted. 
                     # (WH, WE, WC): use fixed weights
                     # 'calc' : calculated weights to use
                 
-# file to load and optional file directory---can leave undefined '' or '.'
-inputTrain = 'F5-8-17_gold.csv'
+# files to load and optional file directory---can leave undefined '' or '.'
+inputTrain = 'train.csv'
+inputTest = 'test.csv'
 fileDirectory = '.'
 
-# data parameters
-sequenceLimits = (100,600,502)  # screen data for seq lengths in this interval
-siteLimits = (4,10,6)  # screen data for seq lengths in this interval
+# data parameters for screening sequence length and cropping
+sequenceLimits = ( 1, 2000, 502 )   # format ( min, max, crop )
+siteLimits = ( 1, 20, 6 )   # format ( min, max, crop )
 
+# symbol usage
 siteVocab = 'NACGTUWSMKRYBDHV'    # uses N as padding as well as internal N
-aaVocab = " ARNDCEQGHILKMFPSTWYV" 
+aaVocab = " ARNDCEQGHILKMFPSTWYV"   # uses space as padding
 ###########################################################################
 ###########################################################################
 ###########################################################################
 
 # load data -------------------------------------------
-xTrain, yTrain, df = bsp.dataReader(os.path.join(fileDirectory, inputTrain), 
+xTrain, yTrain = bsp.dataReader(os.path.join(fileDirectory, inputTrain), 
                                 site=siteLimits, 
                                 seq = sequenceLimits
                               )
 yTrain.swapaxes_(1, 2)   # put in correct order for CNN
+xTest, yTest = bsp.dataReader(os.path.join(fileDirectory, inputTest), 
+                                site=siteLimits, 
+                                seq = sequenceLimits
+                              )
+yTest.swapaxes_(1, 2)   # put in correct order for CNN
 dataTrain = bsp.seqDataset(xTrain, yTrain ) # needed for batches
 
-###########################################################################
 # print data/batch stats ------------------------------------
 print("DATA SET")
 print("{:<20} {:<15} {:<15}".format('DATA', 'ENTRIES', 'LENGTH'))
-rows = ['training data']
-ds = [xTrain]
+rows = ['training data', 'test data']
+ds = [xTrain, xTest]
 for r, d in zip(rows, ds):
     a, b = d.shape
     print(f"{r:<20} {a:<15} {b:<15}")
 
 ###########################################################################
-# create weights for classes--should broadcast correctly in loss calc
 '''
+# create weights for classes--should broadcast correctly in loss calc
 yMask = yTrain.sum(axis=1).detach().numpy()
 yClasses = np.argmax(yTrain.detach().numpy(), axis=1)
 yAdjusted = yClasses + yMask
@@ -156,8 +157,15 @@ for i in range(numberEpochs):
         
         # print out if report cycle done
         if stepCount % reportCycle == 0:
-            print(f"{i:<10} {j:<10} {loss.item():<10.5} ")
+            
+            # calc test loss
+            testPrediction = model( xTest ) 
+            testLossTerms = -yTest*torch.log(testPrediction)
+            testLoss = testLossTerms.sum()/yTest.shape.numel() # normalize by num of AAs
+
+            print(f"{i:<10} {j:<10} {loss.item():<10.5} {testLoss.item():<10.5}")
             plt.plot([stepCount], [loss.item()], '.k')
+            plt.plot([stepCount], [testLoss.item()], '.r')
         
         stepCount += 1
 
@@ -168,9 +176,9 @@ plt.show()
 # must convert probability-logits to one-hots ---
 # convert max logit value to 1, others 0
 print('\nFINAL METRICS')
-titles = ['training']
-xSets = [ xTrain ]
-ySets = [ yTrain ]
+titles = ['training', 'test']
+xSets = [ xTrain, xTest ]
+ySets = [ yTrain, yTest ]
 for t,xs,ys in zip(titles,xSets,ySets):
 
     # problem: whenever zero-padding is encountered, argmax returns class 0!
