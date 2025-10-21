@@ -9,7 +9,7 @@ line. for example:
 
 >AatII   GACGTC  345 aa
 
-Code will find intersection of RE names and create combined fill with only
+Code will find intersection of RE names and create combined file with only
 those
 
 also prints out stats on resulting dataframe
@@ -25,13 +25,13 @@ import matplotlib.pyplot as plt
 ###############################################################################
 '''
 # source data file name and directory for sequence, format
-sequenceFile = 'Type_II_restriction_enzymes_Gold_Standards_Protein.txt'
+sequenceFile = 'All_Type_II_restriction_enzyme_genes_Protein.txt'
 sequenceDir = '/home/allen/projects/DATA/bsp'
 sequenceFormat = 'fasta-pearson'  # if error message, try 'fasta-pearson'
 
 # source data for site data
-siteFile = 'F5-8-17.csv'
-siteDir = '.'
+siteFile = 'sites_combined_20251021.csv'
+siteDir = 'data'
 
 # name for saved data file. 'None' to not save output
 saveFileName = None # 'F5-8-17_gold.csv'
@@ -48,13 +48,16 @@ siteSet = set( siteDf['RE'] )
 record = SeqIO.parse(os.path.join(sequenceDir,sequenceFile),sequenceFormat)
 
 # create data frame with sequence lengths, print stats
+seqNames=[]
 sequences = []
 names=[]
 sites=[]
-count=0
+count = 0
 for rec in record:
-    count+=1
+    count += 1
+    seqNames.append( rec.name.lower() )
     if rec.name.lower() in siteSet:
+        print( rec.name , end=' ')
         sequences.append( str(rec.seq) )
         names.append( rec.name )
         sites.append( 
@@ -62,7 +65,18 @@ for rec in record:
                     )
 # create dataframe, print stats and plot length histogram
 dataDf = pd.DataFrame( { 'RE': names, 'site': sites, 'sequence': sequences} )
+print('\nprocessed',count,'sequences' )
 print(dataDf.describe() )
 if saveFileName:
     dataDf.to_csv(saveFileName,header=True, index=False)
+
+seqSet=set(seqNames)
+remain=siteSet.difference(seqSet)
+for name in remain:
+    for n in seqNames:
+        if name in n:
+            print(name,n)
+
+
+
 

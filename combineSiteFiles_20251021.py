@@ -62,6 +62,7 @@ from Bio.Seq import reverse_complement
 '''
 
 # data file names and directory
+
 fileList = [   'Format2_C.csv',
              'Format5_C.csv',
              'Format8_C.csv',
@@ -77,7 +78,7 @@ excludeList = ['lpnpi','hpyum037x']  # actual inconsistencies
 stripChars = ' N'
 dataDir = 'kylie'
 
-saveName = None
+saveName = 'sites_combined_20251021.csv'
 
 ###############################################################################
 ################ DOT NOT CHANGE ANYTHING UNDER THIS SEPARATOR #################
