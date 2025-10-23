@@ -41,6 +41,7 @@ record = SeqIO.parse(os.path.join(dataDir,sequenceFile),fileFormat)
 reNames = []
 seqLengths = []
 sites=[]
+siteLengths =[]
 charCounts = [0]*20
 step = 0
 chars = "ARNDCEQGHILKMFPSTWYV"
@@ -50,10 +51,13 @@ for rec in record:
     split = rec.description.split()
     if len(split)==5:
         sites.append(split[1])
+        siteLengths.append( len(split[1]) )
     elif len(split)==4 and split[-1] == 'aa':
         sites.append(split[1])
+        siteLengths.append( len(split[1]) )
     else:
         sites.append('x')
+        siteLengths.append( 'x' )
         print('      ',rec.description)
     # count and increment character use
     for i,c in enumerate(chars):
@@ -67,18 +71,17 @@ for rec in record:
     step += 1
 
 # create dataframe, print stats and plot length histogram
-dataDf = pd.DataFrame( { 'RE': reNames, 'length': seqLengths, 'site':sites } )
-print('\n\n',dataDf.describe())
-dataDf[['length']].hist(bins=20)
+dataDf = pd.DataFrame( { 'RE': reNames, 'seqLength': seqLengths, 
+                        'site':sites, 'siteLength': siteLengths  } )
+print('\nall sequences\n',dataDf.describe())
 
-# now print characters and plot use
-print( '\ncharacter set:', list(chars) )
-plt.figure(2)
-plt.title('character use')
-plt.bar(range(len(charCounts)),charCounts,tick_label=list(chars)) 
-
-# create siteDf and save
+# create siteDf and 
 siteDf = dataDf[ dataDf['site']!='x']
+print('\nall sequences with sites\n',siteDf.describe())
+
+
+
+
 
 
 

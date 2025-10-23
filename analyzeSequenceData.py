@@ -20,12 +20,13 @@ import matplotlib.pyplot as plt
 ###############################################################################
 '''
 # data file name and directory
-sequenceFile = 'All_Type_II_restriction_enzyme_genes_Protein.txt'
+sequenceFile='All_REBASE_Gold_Standards_Protein.txt'
+#sequenceFile = 'All_Type_II_restriction_enzyme_genes_Protein.txt'
 dataDir = '/home/allen/projects/DATA/bsp'
 
 # option to print sequence names as processed
 printNames = True  
-reportCycle = 1000   # only print every reportCycle entries
+reportCycle = 4000   # only print every reportCycle entries
 
 # file format
 fileFormat = 'fasta-pearson'  # if error message, try 'fasta-pearson'
