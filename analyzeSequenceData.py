@@ -26,7 +26,7 @@ dataDir = '/home/allen/projects/DATA/bsp'
 
 # option to print sequence names as processed
 printNames = True  
-reportCycle = 4000   # only print every reportCycle entries
+reportCycle = 500   # only print every reportCycle entries
 
 # file format
 fileFormat = 'fasta-pearson'  # if error message, try 'fasta-pearson'

@@ -25,7 +25,9 @@ import matplotlib.pyplot as plt
 ###############################################################################
 '''
 # source data file name and directory for sequence, format
-sequenceFile = 'All_Type_II_restriction_enzyme_genes_Protein.txt'
+
+sequenceFile = 'All_REBASE_Gold_Standards_Protein.txt'
+#sequenceFile = 'Type_II_restriction_enzymes_Gold_Standards_Protein.txt'
 sequenceDir = '/home/allen/projects/DATA/bsp'
 sequenceFormat = 'fasta-pearson'  # if error message, try 'fasta-pearson'
 
@@ -34,13 +36,13 @@ siteFile = 'sites_combined_20251021.csv'
 siteDir = 'data'
 
 # name for saved data file. 'None' to not save output
-saveFileName = None # 'F5-8-17_gold.csv'
+saveFileName = 'data/sites20251021_AllRebaseGold.csv'
 
 ###############################################################################
 ################ DOT NOT CHANGE ANYTHING UNDER THIS SEPARATOR #################
 ###############################################################################
 
-# read in site file, create set of RE names
+# read in site file, create set of RE names (lower case)
 siteDf = pd.read_csv(os.path.join(siteDir,siteFile))
 siteSet = set( siteDf['RE'] )
 
@@ -57,7 +59,7 @@ for rec in record:
     count += 1
     seqNames.append( rec.name.lower() )
     if rec.name.lower() in siteSet:
-        print( rec.name , end=' ')
+        #print( rec.name , end=' ')
         sequences.append( str(rec.seq) )
         names.append( rec.name )
         sites.append( 
@@ -69,14 +71,14 @@ print('\nprocessed',count,'sequences' )
 print(dataDf.describe() )
 if saveFileName:
     dataDf.to_csv(saveFileName,header=True, index=False)
-
+'''
 seqSet=set(seqNames)
 remain=siteSet.difference(seqSet)
 for name in remain:
     for n in seqNames:
         if name in n:
             print(name,n)
-
+'''
 
 
 
