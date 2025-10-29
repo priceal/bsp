@@ -2,7 +2,7 @@
 
 # analyze a dataframe on 'RE' for putative/ORF content
 
-df = dataDf
+df = siteDf
 
 putative=df[ df['RE'].str.endswith('p') ]
 orfs=df[ df['RE'].str.count('orf')>0 ]

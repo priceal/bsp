@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-analyze a data file containing protein sequences
-format should be FASTA
+parse a dsequence ata file containing protein sequences and site data into
+two data frames
+input format should be FASTA
+outputs are csv files, one a site file, the other a combined site/sequence
+file
     
 output:
     number of entries
     site length stats
-    histogram of site lengths
-    histogram of character use in site strings
 """
 import os
 import pandas as pd
@@ -20,15 +21,19 @@ import matplotlib.pyplot as plt
 ###############################################################################
 '''
 # data file name and directory
-sequenceFile = 'All_REBASE_Gold_Standards_Protein.txt'
+sequenceFile = 'All_Type_II_restriction_enzyme_genes_Protein.txt'
 dataDir = '/home/allen/projects/DATA/bsp'
+
+# file format
+fileFormat = 'fasta'  # if error message, try 'fasta-pearson'
 
 # option to print sequence names as processed
 printNames = True  
-reportCycle = 1000   # only print every reportCycle entries
+reportCycle = 500   # only print every reportCycle entries
 
-# file format
-fileFormat = 'fasta-pearson'  # if error message, try 'fasta-pearson'
+# output file names
+siteFileOutput = 'data/All_Type_II_restriction_enzyme_genes_Protein_sites.csv'
+combinedFileOutput = 'All_Type_II_restriction_enzyme_genes_Protein_combined.csv'
 
 ###############################################################################
 ################ DOT NOT CHANGE ANYTHING UNDER THIS SEPARATOR #################
@@ -39,47 +44,40 @@ record = SeqIO.parse(os.path.join(dataDir,sequenceFile),fileFormat)
 
 # create data frame with sequence lengths, print stats
 reNames = []
-seqLengths = []
 sites=[]
-siteLengths =[]
-charCounts = [0]*20
-step = 0
+sequences = []
+
 chars = "ARNDCEQGHILKMFPSTWYV"
-for rec in record:
-    reNames.append(rec.name.lower())
-    seqLengths.append( len(rec.seq) )
+for i,rec in enumerate(record):
+    reNames.append(rec.name)
+    sequences.append( str(rec.seq) )
     split = rec.description.split()
     if len(split)==5:
         sites.append(split[1])
-        siteLengths.append( len(split[1]) )
     elif len(split)==4 and split[-1] == 'aa':
         sites.append(split[1])
-        siteLengths.append( len(split[1]) )
     else:
         sites.append('x')
-        siteLengths.append( 'x' )
-        print('      ',rec.description)
-    # count and increment character use
-    for i,c in enumerate(chars):
-        charCounts[i] += rec.seq.count(c)
         
     # print out RE name if needed
-    if step % reportCycle == 0:
+    if i % reportCycle == 0:
         if printNames:
-            print(step,rec.name)
-            
-    step += 1
+            print(i,rec.name)
 
-# create dataframe, print stats and plot length histogram
-dataDf = pd.DataFrame( { 'RE': reNames, 'seqLength': seqLengths, 
-                        'site':sites, 'siteLength': siteLengths  } )
+# create dataframe, print stats 
+dataDf = pd.DataFrame( { 'RE': reNames, 
+                        'site':sites,
+                        'sequence': sequences} )
 print('\nall sequences\n',dataDf.describe())
 
 # create siteDf and 
 siteDf = dataDf[ dataDf['site']!='x']
 print('\nall sequences with sites\n',siteDf.describe())
 
-
+if siteFileOutput:
+    siteDf[ ['RE','site' ] ].to_csv(siteFileOutput,index=False)
+if combinedFileOutput:
+    siteDf.to_csv(combinedFileOutput,index=False)
 
 
 
