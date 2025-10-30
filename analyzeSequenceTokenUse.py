@@ -6,7 +6,7 @@ format should be FASTA
     
 output for (1) all sequences, and (2) all sequences with site data:
     statistics on lengths
-    histogram of lengths (only for (2))
+    histogram of lengths
     
 option for saving data in csv format as either 
 
@@ -31,7 +31,7 @@ sequenceFile='All_REBASE_Gold_Standards_Protein.txt'
 dataDir = '/home/allen/projects/DATA/bsp'
 
 # input file format
-fileFormat = 'fasta'  #if error message, try 'fasta-pearson' or 'fasta'
+fileFormat = 'fasta-pearson'  #if error message, try 'fasta-pearson' or 'fasta'
 
 # option to print sequence names as processed
 printNames = True  
@@ -50,48 +50,34 @@ record = SeqIO.parse(os.path.join(dataDir,sequenceFile),fileFormat)
 
 # create data frame with sequence/site data, print stats
 reNames = []
-sites = []
+sites=[]
 sequences = []
 seqLengths = []
-for i,rec in enumerate(record):
-    reNames.append(rec.name)
-    sequences.append( str(rec.seq) )
+seqCharCounts = [0]*20
+step = 0
+chars = "ARNDCEQGHILKMFPSTWYV"
+for rec in record:
+    reNames.append(rec.name.lower())
     seqLengths.append( len(rec.seq) )
-    
-    # parse out the site 
-    split = rec.description.split()
-    if len(split)==5:
-        sites.append(split[1])
-    elif len(split)==4 and split[-1] == 'aa':
-        sites.append(split[1])
-    else:
-        sites.append('x') # missing site
-            
+  
+    # count and increment character use
+    for i,c in enumerate(chars):
+        charCounts[i] += rec.seq.count(c)
+        
     # print out RE name if needed
-    if i % reportCycle == 0:
+    if step % reportCycle == 0:
         if printNames:
-            print(i,rec.name)
+            print(step,rec.name)
             
+    step += 1
+
 # create dataframe, print stats and plot length histogram
-dataDf = pd.DataFrame( { 'RE': reNames, 
-                        'site': sites,
-                        'sequence': sequences,
-                        'length': seqLengths } )
+dataDf = pd.DataFrame( { 'RE': reNames, 'length': seqLengths } )
+print('\n\n',dataDf.describe())
+dataDf[['length']].hist(bins=20)
 
-print('\nall sequences\n',dataDf.describe())
-'''
-plt.figure(1)
-dataDf['length'].hist(bins=20)
-'''
-print('\nsequences with sites\n',dataDf[ dataDf.site!='x' ].describe())
-dataDf[ dataDf.site!='x' ]['length'].hist(bins=20)
-
-if siteFileOutput:
-    dataDf[ ['RE','site' ] ].to_csv(siteFileOutput,index=False)
-if combinedFileOutput:
-    dataDf[ ['RE','site','sequence' ] ].to_csv(combinedFileOutput,index=False)
-
-
-
-
-
+# now print characters and plot use
+print( '\ncharacter set:', list(chars) )
+plt.figure(2)
+plt.title('character use')
+plt.bar(range(len(charCounts)),charCounts,tick_label=list(chars)) 
