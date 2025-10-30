@@ -62,20 +62,23 @@ from Bio.Seq import reverse_complement
 '''
 
 # data file names and directory
-fileList = [   'Format2_C.csv',
-             'Format5_C.csv',
-             'Format8_C.csv',
-            'Format13_C.csv',
-            'Format17_C.csv',
-            'Format23_C.csv',
-            'Format29_C.csv',
-             'Format33_C.csv',
-             'Format37_C.csv',
+fileList = [   'data/All_Type_II_restriction_enzyme_genes_Protein_sites.csv',
+            'kylie/Format2_C.csv',
+             'kylie/Format5_C.csv',
+             'kylie/Format8_C.csv',
+            'kylie/Format13_C.csv',
+            'kylie/Format17_C.csv',
+            'kylie/Format23_C.csv',
+            'kylie/Format29_C.csv',
+             'kylie/Format33_C.csv',
+             'kylie/Format37_C.csv',
 ]
 
 excludeList = ['lpnpi','hpyum037x']  # actual inconsistencies
-stripChars = ' N'
-dataDir = 'kylie'
+
+
+stripChars = ' N,'
+dataDir = '.'
 
 saveName = None
 
@@ -115,8 +118,8 @@ dataAll = pd.concat( dataList, ignore_index=True )
 # for same RE. After eliminating all inconsistent sites, you can drop
 # duplicates for subset = ['RE'], since duplicates are either same or
 # reverse compliment
-#dataAll.drop_duplicates(subset=['RE','site'],keep='first',inplace=True)
-dataAll.drop_duplicates(subset=['RE'],keep='first',inplace=True)
+dataAll.drop_duplicates(subset=['RE','site'],keep='first',inplace=True)
+#dataAll.drop_duplicates(subset=['RE'],keep='first',inplace=True)
 
 # remove exclude list
 if excludeList:
@@ -128,7 +131,7 @@ dataGroup = dataAll.groupby(by='RE')
 groupCount = dataGroup.apply(len)
 groupsMulti = groupCount[ groupCount >1 ]
 
-multiGroups = dataGroup
+numberUniqueREs = len ( set( dataAll.RE ) )
 
 # print out REs with inconsistent sites
 rcList = []
@@ -138,9 +141,9 @@ for k in groupsMulti.index:
     if len(names) == 1:
         continue
     elif len(names) == 2:
-        print(k,'2 entries --- ', end=' ')
+        #print(k,'2 entries --- ', end=' ')
         if names[0] == reverse_complement(names[1]):
-            print( 'reverse complement')
+            #print( 'reverse complement')
             rcList.append(k)
         else:
             print( 'other')

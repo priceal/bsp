@@ -26,8 +26,8 @@ import matplotlib.pyplot as plt
 ###############################################################################
 '''
 # data file name and directory for input sequence data
-sequenceFile='All_REBASE_Gold_Standards_Protein.txt'
-#sequenceFile = 'All_Type_II_restriction_enzyme_genes_Protein.txt'
+#sequenceFile='All_REBASE_Gold_Standards_Protein.txt'
+sequenceFile = 'All_Type_II_restriction_enzyme_genes_Protein.txt'
 dataDir = '/home/allen/projects/DATA/bsp'
 
 # input file format
@@ -35,11 +35,11 @@ fileFormat = 'fasta'  #if error message, try 'fasta-pearson' or 'fasta'
 
 # option to print sequence names as processed
 printNames = True  
-reportCycle = 500   # only print every reportCycle entries
+reportCycle = 1000   # only print every reportCycle entries
 
 # output file names --- 'None' if not saving reformated data
-siteFileOutput = None
-combinedFileOutput = None
+siteFileOutput = 'data/All_Type_II_restriction_enzyme_genes_Protein_sites.csv'
+combinedFileOutput = 'data/All_Type_II_restriction_enzyme_genes_Protein_combined.csv'
 
 ###############################################################################
 ################ DOT NOT CHANGE ANYTHING UNDER THIS SEPARATOR #################
@@ -54,7 +54,7 @@ sites = []
 sequences = []
 seqLengths = []
 for i,rec in enumerate(record):
-    reNames.append(rec.name)
+    reNames.append(rec.name.lower())
     sequences.append( str(rec.seq) )
     seqLengths.append( len(rec.seq) )
     
@@ -79,17 +79,21 @@ dataDf = pd.DataFrame( { 'RE': reNames,
                         'length': seqLengths } )
 
 print('\nall sequences\n',dataDf.describe())
+print( 'unique sequences:', len(set(dataDf.sequence)) )
+      
 '''
 plt.figure(1)
 dataDf['length'].hist(bins=20)
 '''
 print('\nsequences with sites\n',dataDf[ dataDf.site!='x' ].describe())
 dataDf[ dataDf.site!='x' ]['length'].hist(bins=20)
+print( 'unique sequences:', len(set(dataDf[ dataDf.site!='x' ].sequence)) )
+print( 'unique sites:', len(set(dataDf[ dataDf.site!='x' ].site)) )
 
 if siteFileOutput:
-    dataDf[ ['RE','site' ] ].to_csv(siteFileOutput,index=False)
+    dataDf[ dataDf.site!='x' ][ ['RE','site' ] ].to_csv(siteFileOutput,index=False)
 if combinedFileOutput:
-    dataDf[ ['RE','site','sequence' ] ].to_csv(combinedFileOutput,index=False)
+    dataDf[ dataDf.site!='x' ][ ['RE','site','sequence' ] ].to_csv(combinedFileOutput,index=False)
 
 
 
