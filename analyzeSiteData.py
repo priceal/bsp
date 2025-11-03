@@ -21,8 +21,10 @@ import matplotlib.pyplot as plt
 '''
 
 # data file name and directory
-siteFile = 'gcg.csv'
-dataDir = '/home/allen/projects/bsp/data' # '.'
+#siteFile = 'All_Type_II_restriction_enzyme_genes_Protein_sites.csv'
+siteFile = 'sites_combined_20251021.csv'
+
+dataDir = 'data' 
 
 # character separating columns
 delimitChar = ','   #   ','  or '\t'
@@ -33,8 +35,8 @@ delimitChar = ','   #   ','  or '\t'
 
 # read, add length column and print stats
 data=pd.read_csv(os.path.join(dataDir,siteFile),
-                   delimiter=delimitChar,
-                   names=['RE','site'])
+                   delimiter=delimitChar)
+#                   names=['RE','site'])
 siteLengths =[ len(s) for s in data['site'] ]
 data['length']=pd.Series(siteLengths)
 print('\n',data.describe())

@@ -4,11 +4,12 @@
 Created on Sun Apr  6 10:24:09 2025
 @author: allen
 
-utilities for ssp
+utilities for bsp
     
 """
 import numpy as np
 import pandas as pd
+
 import torch
 from torch.utils.data import Dataset
 
