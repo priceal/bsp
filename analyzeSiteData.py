@@ -22,7 +22,10 @@ import matplotlib.pyplot as plt
 
 # data file name and directory
 #siteFile = 'All_Type_II_restriction_enzyme_genes_Protein_sites.csv'
-siteFile = 'sites_combined_20251021.csv'
+
+# 20251021 file is created from formats 2 (GCG), 8 (itype2) and 13 (Bionet)
+# and contains 7913 entries: 980 (GCG), 3253 (itype2) and 3680 (Bionet)  
+siteFile = 'sites_combined_20251021.csv' # formats
 
 dataDir = 'data' 
 

@@ -53,21 +53,17 @@ from Bio.Seq import reverse_complement
 
 # data file names and directory
 
-fileList = [  'kylie/Format8_C.csv',
-            'kylie/Format13_C.csv',
-            'kylie/Format2_C.csv']
-
-'''
+fileList = [  'sites_combined_20251103_8_13.csv',
             'All_Type_II_restriction_enzyme_genes_Protein_sites.csv'
-]
-'''
+            ]
+
 
 excludeList = ['lpnpi','hpyum037x']  # actual inconsistencies
 #excludeList = []
 stripChars = ' N'
-dataDir = '.'
+dataDir = 'data'
 
-saveName = sites_combined_20251103_8_13 # 'data/sites_combined_20251103.csv'
+saveName = None # 'sites_combined_20251103_8_13.csv' 
 
 ###############################################################################
 ################ DOT NOT CHANGE ANYTHING UNDER THIS SEPARATOR #################
@@ -110,7 +106,7 @@ dataAll = pd.concat( dataList, ignore_index=True )
 # duplicates for subset = ['RE'], since duplicates are either same or
 # reverse compliment
 #dataAll.drop_duplicates(subset=['RE','site'],keep='first',inplace=True)
-dataAll.drop_duplicates(subset=['RE'],keep='first',inplace=True)
+#dataAll.drop_duplicates(subset=['RE'],keep='first',inplace=True)
 
 # remove exclude list
 if excludeList:

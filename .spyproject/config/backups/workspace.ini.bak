@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['training_0.py', 'createData.py', 'parseSequenceData.py', 'analyzeSequenceData.py', 'testData.py', 'readData.py', 'combineSiteFiles.py']
+recent_files = ['analyzeSiteData.py', 'analyzeSequenceData.py', 'createFasta.py', 'removeNoSiteSequences.py', 'removeRedundantSequences.py']
 
 [main]
 version = 0.2.0

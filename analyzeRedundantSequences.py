@@ -7,6 +7,8 @@ Created on Mon Nov  3 12:31:21 2025
 """
 import os
 from Bio import SeqIO
+import pandas as pd
+
 '''
 ###############################################################################
 ###############################################################################
@@ -21,22 +23,45 @@ saveFileName = None #'Type_II_methyltransferase_genes_Protein_nonP_site_unique.f
 saveDir = '../DATA/bsp'
 
 ################################################################################
-
+        
 # ---- Read input FASTA ----
 records = SeqIO.parse( os.path.join( sourceDir, sourceFile) , "fasta-pearson")
 
-# ---- Remove duplicate sequences ----
-unique_records = []
-seen_sequences = set()
-repeatSequences = []
-
-for i,record in enumerate(records):
-    seq_str = str(record.seq).upper().strip()  # normalize case and strip
-    if seq_str not in seen_sequences:
-        seen_sequences.add(seq_str)
-        unique_records.append(record)
+# create data frame with sequence lengths, print stats
+sequences = []
+names=[]
+sites=[]
+for i,rec in enumerate(records):
+    names.append( rec.name.lower().strip() )
+    sequences.append( str(rec.seq).upper().strip() )
+    
+    # parse out the site 
+    split = rec.description.split()
+    if len(split)==5:
+        sites.append(split[1].upper().strip())
+    elif len(split)==4 and split[-1] == 'aa':
+        sites.append(split[1].upper().strip())
     else:
-        repeatSequences.append(record.name)
+        sites.append('x') # missing site
+
+
+# create dataframe, print stats and plot length histogram
+dataDf = pd.DataFrame( { 'RE': names, 'site': sites, 'sequence': sequences} )
+
+
+group = dataDf.groupby('sequence')
+groupCount = group.apply(len)
+groupsMulti = groupCount[ groupCount >1 ]
+groupCount.hist(bins=20)
+for s in groupsMulti.index:
+    temp = dataDf[ dataDf.sequence == s]
+    testList = list(temp.site)
+    if len(set(testList)) != 1:
+        print('    whoops!')
+        print( temp )
+ 
+
+
 
 # ---- Write output FASTA ----
 if saveFileName:

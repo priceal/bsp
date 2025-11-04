@@ -35,11 +35,11 @@ fileFormat = 'fasta'  #if error message, try 'fasta-pearson' or 'fasta'
 
 # option to print sequence names as processed
 printNames = True  
-reportCycle = 1000   # only print every reportCycle entries
+reportCycle = 4000   # only print every reportCycle entries
 
 # output file names --- 'None' if not saving reformated data
 siteFileOutput = 'data/All_Type_II_restriction_enzyme_genes_Protein_sites.csv'
-combinedFileOutput = 'data/All_Type_II_restriction_enzyme_genes_Protein_combined.csv'
+combinedFileOutput = None # 'data/All_Type_II_restriction_enzyme_genes_Protein_combined.csv'
 
 ###############################################################################
 ################ DOT NOT CHANGE ANYTHING UNDER THIS SEPARATOR #################
@@ -54,16 +54,16 @@ sites = []
 sequences = []
 seqLengths = []
 for i,rec in enumerate(record):
-    reNames.append(rec.name.lower())
-    sequences.append( str(rec.seq) )
+    reNames.append(rec.name.lower().strip())  # strip to be safe
+    sequences.append( str(rec.seq).strip() ) # strip to be safe
     seqLengths.append( len(rec.seq) )
     
     # parse out the site 
     split = rec.description.split()
     if len(split)==5:
-        sites.append(split[1])
+        sites.append(split[1].strip())
     elif len(split)==4 and split[-1] == 'aa':
-        sites.append(split[1])
+        sites.append(split[1].strip())
     else:
         sites.append('x') # missing site
             
@@ -91,7 +91,7 @@ print( 'unique sequences:', len(set(dataDf[ dataDf.site!='x' ].sequence)) )
 print( 'unique sites:', len(set(dataDf[ dataDf.site!='x' ].site)) )
 
 if siteFileOutput:
-    dataDf[ dataDf.site!='x' ][ ['RE','site' ] ].to_csv(siteFileOutput,index=False)
+    dataDf[ dataDf.site!='x' ][ ['RE','site' ] ].to_csv(siteFileOutput,index=False, header=False)
 if combinedFileOutput:
     dataDf[ dataDf.site!='x' ][ ['RE','site','sequence' ] ].to_csv(combinedFileOutput,index=False)
 

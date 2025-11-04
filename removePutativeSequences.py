@@ -13,11 +13,11 @@ from Bio import SeqIO
 ###############################################################################
 '''
 # source data 
-sourceFile = 'Type_II_methyltransferase_genes_Protein.txt'
+sourceFile = 'All_Type_II_restriction_enzyme_genes_Protein.txt'
 sourceDir = '../DATA/bsp'
 
 # name for saved data file. 'None' to not save output
-saveFileName = 'Type_II_methyltransferase_genes_Protein_nonP.fasta'
+saveFileName = 'All_Type_II_restriction_enzyme_genes_Protein_nonP.fasta'
 saveDir = '../DATA/bsp'
 
 ################################################################################
@@ -27,15 +27,19 @@ records = SeqIO.parse( os.path.join( sourceDir, sourceFile) , "fasta-pearson")
 
 # ---- Remove putative sequences ----
 nonPRecords = []
-nonP = []
-P = []
-
 for rec in records:
-    if not str(rec.name).endswith('P'):
+    if str(rec.name).strip().endswith('P'):
+        continue
+    nonPRecords.append(rec)
+
+'''
+    if str(rec.name).strip().endswith('P'):
         nonPRecords.append(rec)
         nonP.append(rec.name )
     else:
         P.append( rec.name)
+'''
 
 # ---- Write output FASTA ----
-SeqIO.write(nonPRecords, os.path.join(saveDir,saveFileName), "fasta")
+if saveFileName:
+    SeqIO.write(nonPRecords, os.path.join(saveDir,saveFileName), "fasta")
