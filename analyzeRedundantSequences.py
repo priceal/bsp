@@ -27,11 +27,11 @@ saveDir = '../DATA/bsp'
 # ---- Read input FASTA ----
 records = SeqIO.parse( os.path.join( sourceDir, sourceFile) , "fasta-pearson")
 
-# create data frame with sequence lengths, print stats
+# create data frame with RE name, site and sequence
 sequences = []
 names=[]
 sites=[]
-for i,rec in enumerate(records):
+for rec in records:
     names.append( rec.name.lower().strip() )
     sequences.append( str(rec.seq).upper().strip() )
     
@@ -42,6 +42,7 @@ for i,rec in enumerate(records):
     elif len(split)==4 and split[-1] == 'aa':
         sites.append(split[1].upper().strip())
     else:
+        print('missing site', rec.description)
         sites.append('x') # missing site
 
 
@@ -53,12 +54,15 @@ group = dataDf.groupby('sequence')
 groupCount = group.apply(len)
 groupsMulti = groupCount[ groupCount >1 ]
 groupCount.hist(bins=20)
+whoops=[]
 for s in groupsMulti.index:
     temp = dataDf[ dataDf.sequence == s]
     testList = list(temp.site)
     if len(set(testList)) != 1:
         print('    whoops!')
         print( temp )
+        whoops.append(temp)
+        
  
 
 

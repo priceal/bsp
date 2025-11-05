@@ -13,8 +13,9 @@ from Bio import SeqIO
 ###############################################################################
 '''
 # source data 
-sourceFile = 'All_Type_II_restriction_enzyme_genes_Protein_nonP_site.fasta'
+sourceFile = 'All_Type_II_restriction_enzyme_genes_Protein_nonP_siteA.fasta'
 sourceDir = '../DATA/bsp'
+
 
 # name for saved data file. 'None' to not save output
 saveFileName = None #'Type_II_methyltransferase_genes_Protein_nonP_site_unique.fasta'

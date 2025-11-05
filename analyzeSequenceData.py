@@ -27,7 +27,7 @@ import matplotlib.pyplot as plt
 '''
 # data file name and directory for input sequence data
 #sequenceFile='All_REBASE_Gold_Standards_Protein.txt'
-sequenceFile = 'All_Type_II_restriction_enzyme_genes_Protein.txt'
+sequenceFile = 'All_Type_II_restriction_enzyme_genes_Protein_nonP_site.fasta'
 dataDir = '/home/allen/projects/DATA/bsp'
 
 # input file format
@@ -35,7 +35,7 @@ fileFormat = 'fasta'  #if error message, try 'fasta-pearson' or 'fasta'
 
 # option to print sequence names as processed
 printNames = True  
-reportCycle = 4000   # only print every reportCycle entries
+reportCycle = 100   # only print every reportCycle entries
 
 # output file names --- 'None' if not saving reformated data
 siteFileOutput = 'data/All_Type_II_restriction_enzyme_genes_Protein_sites.csv'
@@ -53,20 +53,24 @@ reNames = []
 sites = []
 sequences = []
 seqLengths = []
-for i,rec in enumerate(record):
+for i, rec in enumerate(record):
     reNames.append(rec.name.lower().strip())  # strip to be safe
     sequences.append( str(rec.seq).strip() ) # strip to be safe
     seqLengths.append( len(rec.seq) )
     
     # parse out the site 
     split = rec.description.split()
-    if len(split)==5:
-        sites.append(split[1].strip())
-    elif len(split)==4 and split[-1] == 'aa':
-        sites.append(split[1].strip())
-    else:
+    if (len(split)==3) or (len(split)>5):
+        print( 'cannot parse site:', rec.description )
         sites.append('x') # missing site
-            
+        continue
+    elif (len(split)==4) and (split[-1].strip()=='fragment'):
+        print( 'cannot parse site:', rec.description )
+        sites.append('x') # missing site
+        continue
+    else:
+        sites.append(split[1].strip())
+
     # print out RE name if needed
     if i % reportCycle == 0:
         if printNames:

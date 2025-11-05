@@ -53,7 +53,7 @@ from Bio.Seq import reverse_complement
 
 # data file names and directory
 
-fileList = [  'sites_combined_20251103_8_13.csv',
+fileList = [  'sites_combined_20251104_8_13.csv',
             'All_Type_II_restriction_enzyme_genes_Protein_sites.csv'
             ]
 
@@ -105,7 +105,7 @@ dataAll = pd.concat( dataList, ignore_index=True )
 # for same RE. After eliminating all inconsistent sites, you can drop
 # duplicates for subset = ['RE'], since duplicates are either same or
 # reverse compliment
-#dataAll.drop_duplicates(subset=['RE','site'],keep='first',inplace=True)
+dataAll.drop_duplicates(subset=['RE','site'],keep='first',inplace=True)
 #dataAll.drop_duplicates(subset=['RE'],keep='first',inplace=True)
 
 # remove exclude list
