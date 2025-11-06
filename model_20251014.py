@@ -32,18 +32,18 @@ class bspModel(torch.nn.Module):
     
     kernel	11
 	
-    layer	
+    LAYER	SIZE
     input	502
-    cnn	    492
-    pool	246
-    cnn	    236
-    pool	118
-    cnn	    108
-    pool	54
-    cnn	    44
-    pool	22
-    cnn	    12
-    pool	6
+    cnn1	    492
+    pool1	246
+    cnn2	    236
+    pool2	118
+    cnn3	    108
+    pool3	54
+    cnn4	    44
+    pool4	22
+    cnn5	    12
+    pool5	6
 
     '''
 
@@ -51,22 +51,11 @@ class bspModel(torch.nn.Module):
         super(bspModel, self).__init__()
 
         # encoding and embedding parameters
-        self.siteCodeSize = 16    # binding site code
-        self.aaCodeSize = 21      # aa code
-        self.padidx = 0           # change this for another padding index
-        self.ed = 5               # embedding dimension
+        self.siteCodeSize = 16    # binding site code size
+        self.aaCodeSize = 21      # aa code size
+        self.padidx = 0           # change if needed
+        self.ed = 5               # embedding dimension for aa sequence
 
-        # convolutional layers, in format 
-        #(in_channels, out_channels, kernel_size, stride, padding, activation)
-        # each convolution w/o padding reduces size by kernel-1
-        # so minimum size must be greater than SUM(kernel-1)
-        paramsCL = (
-                         ( self.ed, 4, 11, ),
-                         ( 4, 4, 11 ),
-                         ( 4, 4, 11 ),
-                         ( 4, 4, 11 )
-                    )
-       
         # embedding transformation, input tensor must have dims (*), output
         # will have (*,self.ed). since CNN uses (*,channels,length), must swap last
         # two dims afterward. Has feature that can fix padding index so that embedding
@@ -76,7 +65,18 @@ class bspModel(torch.nn.Module):
                                                 self.ed, 
                                                 padding_idx=self.padidx 
                                             )
-     
+
+        # convolutional layers, in format 
+        #(in_channels, out_channels, kernel_size, stride, padding, activation)
+        # each convolution w/o padding reduces size by kernel-1
+        # so minimum size must be greater than SUM(kernel-1)
+        paramsCL = (
+                         ( self.ed, 4, 11 ),
+                         ( 4, 4, 11 ),
+                         ( 4, 4, 11 ),
+                         ( 4, 4, 11 )
+                    )
+       
         # layer parameters = (input chans, output chans, kernel)
         convLayers= []; batchLayers = []; 
         for inch, outch, ksize in paramsCL:
@@ -95,7 +95,6 @@ class bspModel(torch.nn.Module):
         self.pooling = torch.nn.MaxPool1d(2, stride=2)
         self.relu = torch.nn.ReLU()
         
-
         self.outLayer = torch.nn.Conv1d(in_channels=4,
                                        out_channels=self.siteCodeSize,
                                        kernel_size=11,
@@ -108,7 +107,6 @@ class bspModel(torch.nn.Module):
     ###########################################################################
     def forward(self, x ):
         '''
-        
         Args:
             x (TYPE): data batch, with shape (N,length)
             mask (TYPE): binary mask, with shape (N,1,length) to matmult with
@@ -116,7 +114,6 @@ class bspModel(torch.nn.Module):
 
         Returns:
             x (TYPE): DESCRIPTION.
-
         '''
 
         # since CNN uses (*, channels, length), must swap last two dims after 
@@ -127,18 +124,17 @@ class bspModel(torch.nn.Module):
         # convolutional layers --- note, if manually padded on C-term, the
         # layers after first hidden will have c-term residues influenced by
         # a non-zero padding, which will propagate through layers!
-        # might need to zero out the padding after each layer!
+        # might want to zero out the padding after each layer in future
         for cl, bl in zip( self.conv, self.batch ):
             x = cl(x)
             x = bl(x)
             x = self.pooling(x)
             x = self.relu(x)
             
- 
+        # final output layer
         x = self.outLayer(x)
         x = self.outBatch(x)
         x = self.pooling(x)
         x = self.outActiv(x)
-
 
         return x 

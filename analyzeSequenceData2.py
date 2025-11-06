@@ -2,8 +2,13 @@
 # -*- coding: utf-8 -*-
 """
 analyze a data file containing protein sequences and possible sites
-format should be FASTA
+format should be FASTA, with headers to each sequence of following format:
     
+
+>REBASE:M.Aac9709I	EnzType:Type II methyltransferase	RecSeq:GATC	...
+GenBank:UFSG01000001	SeqLength:284	Locus:NCTC9709_01044	...
+ProteinId:SSY84327.1
+
 output for (1) all sequences, and (2) all sequences with site data:
     statistics on lengths
     histogram of lengths (only for (2))
@@ -27,7 +32,7 @@ import matplotlib.pyplot as plt
 '''
 # data file name and directory for input sequence data
 #sequenceFile='All_REBASE_Gold_Standards_Protein.txt'
-sequenceFile = 'All_Type_II_restriction_enzyme_genes_Protein_nonP_site.fasta'
+sequenceFile = 'protein_mini_reg_seqs.txt'
 dataDir = '/home/allen/projects/DATA/bsp'
 
 # input file format
@@ -38,7 +43,7 @@ printNames = True
 reportCycle = 100   # only print every reportCycle entries
 
 # output file names --- 'None' if not saving reformated data
-siteFileOutput = 'data/All_Type_II_restriction_enzyme_genes_Protein_sites.csv'
+siteFileOutput = None # 'data/All_Type_II_restriction_enzyme_genes_Protein_sites.csv'
 combinedFileOutput = None # 'data/All_Type_II_restriction_enzyme_genes_Protein_combined.csv'
 
 ###############################################################################
@@ -49,38 +54,34 @@ combinedFileOutput = None # 'data/All_Type_II_restriction_enzyme_genes_Protein_c
 record = SeqIO.parse(os.path.join(dataDir,sequenceFile),fileFormat)
 
 # create data frame with sequence/site data, print stats
-reNames = []
+names = []
 sites = []
 sequences = []
-seqLengths = []
+lengths = []
 for i, rec in enumerate(record):
-    reNames.append(rec.name.lower().strip())  # strip to be safe
-    sequences.append( str(rec.seq).strip() ) # strip to be safe
-    seqLengths.append( len(rec.seq) )
-    
-    # parse out the site 
-    split = rec.description.split()
-    if (len(split)==3) or (len(split)>5):
-        print( 'cannot parse site:', rec.description )
-        sites.append('x') # missing site
-        continue
-    elif (len(split)==4) and (split[-1].strip()=='fragment'):
-        print( 'cannot parse site:', rec.description )
-        sites.append('x') # missing site
-        continue
+    headerDict = dict(
+                    [s.split(':',maxsplit=1) for s in rec.description.split('\t')]
+                    )
+    sequences.append( str(rec.seq).strip(' <>') ) # strip to be safe
+    lengths.append( len(str(rec.seq).strip(' <>') ) )
+    if 'REBASE' in headerDict.keys():
+        names.append( headerDict['REBASE'].strip() ) # strip to be safe
     else:
-        sites.append(split[1].strip())
-
+        names.append( '?' ) 
+    if 'RecSeq' in headerDict.keys():
+        sites.append( headerDict['RecSeq'].strip(' N') )
+    else:
+        sites.append('x')
     # print out RE name if needed
     if i % reportCycle == 0:
         if printNames:
             print(i,rec.name)
-            
+    
 # create dataframe, print stats and plot length histogram
-dataDf = pd.DataFrame( { 'RE': reNames, 
-                        'site': sites,
+dataDf = pd.DataFrame( { 'RE': names, 
+                        'site':sites,
                         'sequence': sequences,
-                        'length': seqLengths } )
+                        'length': lengths } )
 
 print('\nall sequences\n',dataDf.describe())
 print( 'unique sequences:', len(set(dataDf.sequence)) )

@@ -81,7 +81,7 @@ def encode(string, vocab=" ARNDCEQGHILKMFPSTWYV", length=100):
 
 #######################################################################
 def dataReader(filePath, site=(0,15,15), seq=(0,500,500), 
-               siteVocab = 'NACGTUWSMKRYBDHV', 
+               siteVocab = " NACGTUWSMKRYBDHV", 
                aaVocab = " ARNDCEQGHILKMFPSTWYV" ):
     '''
     reads text file of protein site, sequences data.
@@ -89,12 +89,18 @@ def dataReader(filePath, site=(0,15,15), seq=(0,500,500),
     
     Args:
         filePath (string): input file path.
-        siteCrop (TYPE, optional): DESCRIPTION. Defaults to 15.
-        sequenceCrop (TYPE, optional): DESCRIPTION. Defaults to 500.
+        site : (min,max,crop), optional
+            filters inputs between min/max and crops. The default is (0,15,15).
+        seq : (min,max,crop), optional
+            filters inputs between min/max and crops. The default is (0,15,15).
+        siteVocab : TYPE, optional
+            for encoding. The default is " NACGTUWSMKRYBDHV".
+        aaVocab : TYPE, optional
+            for encoding. The default is " ARNDCEQGHILKMFPSTWYV".
 
     Returns:
-        tensor, tensor: first is data in shape (N,sequenceCrop), the second
-        is target in shape (N, siteCrop)
+        tensor, tensor: first is data in shape (N,seqCrop), the second
+        is target in shape (N, siteCrop, len(siteVocab) )
     '''
     try:
         dataDf = pd.read_csv( filePath )
@@ -113,12 +119,14 @@ def dataReader(filePath, site=(0,15,15), seq=(0,500,500),
     siteList=[]
     sequenceList=[]
     for i in dataDf.index:
+        # the aa sequence is encoding numerically to char position in aaVocab
         sequenceList.append(
                 encode(
                 dataDf.at[i,'sequence'],
                 vocab=aaVocab,
                 length=seqCrop)
             )
+        # the site dna sequence is one-hot encoded using siteVocab
         siteList.append(
                 oneHot(
                 dataDf.at[i,'site'],

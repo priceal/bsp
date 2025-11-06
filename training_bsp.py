@@ -5,16 +5,15 @@ Created on Sun Apr  6 10:24:09 2025
 @author: allen
 
 
-uses class weights to correct imbalance in data
 
 features to include:
-    1) employ torch optimization tools      v/
-    2) use scikit learn metrics             v/
-    3) split test/train                     v/ (pre-calculated)
-    4) employ batch optimization            v/
+    1) employ torch optimization tools      
+    2) use scikit learn metrics             
+    3) split test/train                     
+    4) employ batch optimization            
     5) drop out back propagation
-    6) use weights to correct imbalance     v/
-    7) add embedding                        v/
+    6) use weights to correct imbalance     
+    7) add embedding                        
     8) padding to handle variable length
     9) add attention layer
     
@@ -28,7 +27,7 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from sklearn.utils.class_weight import compute_class_weight
 import matplotlib.pyplot as plt
 
-from bsp_utils import dataReader, seqDataset
+import bsp_utils as bsp
 from model_20251014 import bspModel
 
 '''
@@ -36,50 +35,46 @@ from model_20251014 import bspModel
 ############################# main ############################################
 ###############################################################################
 '''
-
 # learning parameters
-lengthLimits = (0,1000)  # screen data for seq lengths in this interval
-cropSize = 502  # crop/pad all accepted seqs to this length
-
-numBatches = 0 # if non-zero, ignore batchSize and set to N/numBatches
-batchSize = 64 # only use if numBatches = 0
-numberEpochs = 4
+numBatches = 1 # if non-zero, ignore batchSize and set to N/numBatches
+batchSize = 0 # only use if numBatches = 0
+numberEpochs = 400
 learningRate = 0.1
-
-reportCycle = 11
-
-refine = False  # creates new model if False
-weights = None      # None: unweighted. 
+reportCycle = 1
+refine = True    # creates new model if False
+weights = None    # None: unweighted. 
                     # (WH, WE, WC): use fixed weights
                     # 'calc' : calculated weights to use
                 
-# file to load and optional file directory---can leave undefined '' or '.'
-inputTrain = 'F5-8-17_gold.csv'
-inputTest = 'F5-8-17_gold.csv'
-#inputTrain = 'test.txt'
-#inputTest = 'test.txt'
+# files to load and optional file directory---can leave undefined '' or '.'
+inputTrain = 'train.csv'
+inputTest = 'test.csv'
+fileDirectory = '.'
 
-fileDirectory = 'data'
+# data parameters for screening sequence length and cropping
+sequenceLimits = ( 1, 2000, 502 )   # format ( min, max, crop )
+siteLimits = ( 1, 20, 6 )   # format ( min, max, crop )
 
-
+# symbol usage
+siteVocab = 'NACGTUWSMKRYBDHV'    # uses N as padding as well as internal N
+aaVocab = " ARNDCEQGHILKMFPSTWYV"   # uses space as padding
 ###########################################################################
 ###########################################################################
 ###########################################################################
 
 # load data -------------------------------------------
-xTest, yTest = dataReader(os.path.join(fileDirectory, inputTest), 
-                          lengths=lengthLimits, 
-                          crop=cropSize, 
-                          onehot=(False,True) )
-yTest.swapaxes_(1, 2)   # put in correct order for loss calculation
-xTrain, yTrain = dataReader(os.path.join(fileDirectory, inputTrain), 
-                            lengths=lengthLimits, 
-                            crop=cropSize, 
-                            onehot=(False,True) )
+xTrain, yTrain = bsp.dataReader(os.path.join(fileDirectory, inputTrain), 
+                                site=siteLimits, 
+                                seq = sequenceLimits
+                              )
 yTrain.swapaxes_(1, 2)   # put in correct order for CNN
-dataTrain = seqDataset(xTrain, yTrain ) # needed for batches
+xTest, yTest = bsp.dataReader(os.path.join(fileDirectory, inputTest), 
+                                site=siteLimits, 
+                                seq = sequenceLimits
+                              )
+yTest.swapaxes_(1, 2)   # put in correct order for CNN
+dataTrain = bsp.seqDataset(xTrain, yTrain ) # needed for batches
 
-###########################################################################
 # print data/batch stats ------------------------------------
 print("DATA SET")
 print("{:<20} {:<15} {:<15}".format('DATA', 'ENTRIES', 'LENGTH'))
@@ -90,6 +85,7 @@ for r, d in zip(rows, ds):
     print(f"{r:<20} {a:<15} {b:<15}")
 
 ###########################################################################
+'''
 # create weights for classes--should broadcast correctly in loss calc
 yMask = yTrain.sum(axis=1).detach().numpy()
 yClasses = np.argmax(yTrain.detach().numpy(), axis=1)
@@ -103,6 +99,7 @@ elif weights=='calc':
     weights = numClasses.sum()/numClasses/3 # dims=(3)
 # add dim in place to get dims = (3,1) for broadcasting
 weights = torch.tensor(weights).unsqueeze_(1)
+'''
 
 # determine batch size and number of batches -----------------------    
 if numBatches > 0:
@@ -110,11 +107,13 @@ if numBatches > 0:
 else:
     numBatches = int(len(xTrain)/batchSize)
 
+'''
 print('{:<10} {:<10} {:<10} {:<10} {:<10}'.format('index','label','count','fraction','weight') )
 for i,tl in enumerate(targetLabels):
     print('{:<10} {:<10} {:<10} {:<10.4} {:<10.4}'.format(
         i,tl,int(numClasses[i]),numClasses[i]/numClasses.sum(), float(weights[i]) 
         ) )
+'''
 print('number of batches:', numBatches)
 print('size of batches:', batchSize)
 dataloader = DataLoader(dataTrain, batch_size=batchSize, shuffle=True)
@@ -122,7 +121,7 @@ dataloader = DataLoader(dataTrain, batch_size=batchSize, shuffle=True)
 ###########################################################################
 # create model ----------------------------------------------------
 if not refine:     # if refining pre-existing, don't create new model
-    model = cnnModel()
+    model = bspModel()
 print('\nMODEL ')
 print("{0:20} {1:20}".format("MODULES", "PARAMETERS"))
 total_params = 0
@@ -146,11 +145,11 @@ for i in range(numberEpochs):
     for j, batch in enumerate(dataloader):
         
         xx, yy = batch[0], batch[1]
-        yyMask = yy.sum(axis=1).unsqueeze(1)
+#        yyMask = yy.sum(axis=1).unsqueeze(1)
         prediction = model(xx)
         
-        lossTerms = -yy*torch.log(prediction)*weights
-        loss = lossTerms.sum()/yy.shape.numel() # normalize by num of AAs
+        lossTerms = -yy*torch.log(prediction)
+        loss = lossTerms.sum()/yy.shape.numel() # normalize by num of site bps
         
         optimizer.zero_grad()
         loss.backward()
@@ -161,8 +160,9 @@ for i in range(numberEpochs):
             
             # calc test loss
             testPrediction = model( xTest ) 
-            testLossTerms = -yTest*torch.log(testPrediction,)*weights
+            testLossTerms = -yTest*torch.log(testPrediction)
             testLoss = testLossTerms.sum()/yTest.shape.numel() # normalize by num of AAs
+
             print(f"{i:<10} {j:<10} {loss.item():<10.5} {testLoss.item():<10.5}")
             plt.plot([stepCount], [loss.item()], '.k')
             plt.plot([stepCount], [testLoss.item()], '.r')
@@ -176,7 +176,7 @@ plt.show()
 # must convert probability-logits to one-hots ---
 # convert max logit value to 1, others 0
 print('\nFINAL METRICS')
-titles = ['training','test']
+titles = ['training', 'test']
 xSets = [ xTrain, xTest ]
 ySets = [ yTrain, yTest ]
 for t,xs,ys in zip(titles,xSets,ySets):
@@ -191,12 +191,12 @@ for t,xs,ys in zip(titles,xSets,ySets):
     pCheck = np.argmax(prediction.detach().numpy(), axis=1).flatten()
     cm = confusion_matrix(yCheck, pCheck, sample_weight=mask)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm,
-                                  display_labels=targetLabels)
+                                  display_labels=siteVocab)
     disp.plot()
     recall = np.diagonal(cm)/cm.sum(axis=1)
     precision = np.diagonal(cm)/cm.sum(axis=0)
     print('{:10} {:10} {:10}'.format('class', 'recall', 'precision'))
-    for n, r, p in zip(targetLabels, recall, precision):
+    for n, r, p in zip(siteVocab, recall, precision):
         print(f'{n:<10} {r:<10.4} {p:<10.4}')
         
 
