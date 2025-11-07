@@ -32,7 +32,7 @@ import matplotlib.pyplot as plt
 '''
 # data file name and directory for input sequence data
 #sequenceFile='All_REBASE_Gold_Standards_Protein.txt'
-sequenceFile = 'protein_mini_reg_seqs.txt'
+sequenceFile = 'protein_seqs.txt'
 dataDir = '/home/allen/projects/DATA/bsp'
 
 # input file format
@@ -40,7 +40,10 @@ fileFormat = 'fasta'  #if error message, try 'fasta-pearson' or 'fasta'
 
 # option to print sequence names as processed
 printNames = True  
-reportCycle = 100   # only print every reportCycle entries
+reportCycle = 5000   # only print every reportCycle entries
+
+# set to True to filter out putative sequences
+filterPut = True
 
 # output file names --- 'None' if not saving reformated data
 siteFileOutput = None # 'data/All_Type_II_restriction_enzyme_genes_Protein_sites.csv'
@@ -86,10 +89,12 @@ dataDf = pd.DataFrame( { 'RE': names,
 print('\nall sequences\n',dataDf.describe())
 print( 'unique sequences:', len(set(dataDf.sequence)) )
       
-'''
-plt.figure(1)
-dataDf['length'].hist(bins=20)
-'''
+# filter out putative sequences if requested
+if filterPut:
+    dataDf = dataDf[ dataDf['RE'].map( lambda x: not x.endswith('P') ) ]
+    print('\nnon-putative sequences\n',dataDf.describe())
+    print( 'unique non-putative sequences:', len(set(dataDf.sequence)) )
+    
 print('\nsequences with sites\n',dataDf[ dataDf.site!='x' ].describe())
 dataDf[ dataDf.site!='x' ]['length'].hist(bins=20)
 print( 'unique sequences:', len(set(dataDf[ dataDf.site!='x' ].sequence)) )
