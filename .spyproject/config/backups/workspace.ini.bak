@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['analyzeSequenceData2.py', 'model_20251014.py', 'training.py', 'bsp_utils.py', 'training_bsp.py']
+recent_files = ['analyzeSequenceData2.py', 'training.py', 'bsp_utils.py', 'training_bsp.py', 'removePutativeSequences.py']
 
 [main]
 version = 0.2.0
