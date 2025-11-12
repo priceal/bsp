@@ -35,7 +35,7 @@ from model_20251014 import bspModel
 # set learning parameters --------------------------------------------------
 numBatches = 1 # if non-zero, ignore batchSize and set to N/numBatches
 batchSize = 0 # only use if numBatches = 0
-numberEpochs = 500
+numberEpochs = 1000
 learningRate = 0.1
 reportCycle = 10
 refine = False     # creates new model if False
@@ -48,15 +48,16 @@ fileDirectory = '.'
 
 # data parameters for screening sequence length and cropping-----------------
 # format ( min, max, crop )
-sequenceLimits = ( 1, 2000, 502 )  
+sequenceLimits = ( 1, 2000, 502 )  # crop must be 502 for model_20251014
 siteLimits = ( 1, 20, 6 )   # note: crop must be 6 for model_20251014 !!!!
+
+###########################################################################
+###########################################################################
+###########################################################################
 
 # symbol usage, uses space as padding -------------------------------------
 siteVocab = ' ACGTNUWSMKRYBDHV'
 aaVocab = " ARNDCEQGHILKMFPSTWYV"
-###########################################################################
-###########################################################################
-###########################################################################
 
 # load data -------------------------------------------
 xTrain, yTrain = bsp.dataReader(os.path.join(fileDirectory, inputTrain), 
