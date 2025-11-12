@@ -51,7 +51,7 @@ class bspModel(torch.nn.Module):
         super(bspModel, self).__init__()
 
         # encoding and embedding parameters
-        self.siteCodeSize = 16    # binding site code size
+        self.siteCodeSize = 17    # binding site code size
         self.aaCodeSize = 21      # aa code size
         self.padidx = 0           # change if needed
         self.ed = 5               # embedding dimension for aa sequence

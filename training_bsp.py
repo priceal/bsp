@@ -1,63 +1,59 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sun Apr  6 10:24:09 2025
-@author: allen
+Script to train the BSP model.  
 
+Script will load a training and a test set and perform a given number of 
+epochs of stochastic gradient descent. During optimization it tracks the 
+training loss and the test loss. At the end of optimization it will plot 
+these losses versus iteration of training and also calculates some 
+evaluation metrics including the recall and precision per class and 
+plots confusion matrices for both the training and test sets. 
 
+Filtering of input sequences and sites can be done with sequence 
+limits and site limits variables. Accepted data entries can also be 
+cropped using the crop parameters. 
 
-features to include:
-    1) employ torch optimization tools      
-    2) use scikit learn metrics             
-    3) split test/train                     
-    4) employ batch optimization            
-    5) drop out back propagation
-    6) use weights to correct imbalance     
-    7) add embedding                        
-    8) padding to handle variable length
-    9) add attention layer
+features included:
+    1) torch optimization tools      
+    2) scikit learn metrics             
+    3) test/train split                 
+    4) batch optimization            
     
 """
 
+# import libraries -----------------------------------------------------
 import os
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
-from sklearn.utils.class_weight import compute_class_weight
 import matplotlib.pyplot as plt
-
 import bsp_utils as bsp
 from model_20251014 import bspModel
 
-'''
-###############################################################################
-############################# main ############################################
-###############################################################################
-'''
-# learning parameters
+# set learning parameters --------------------------------------------------
 numBatches = 1 # if non-zero, ignore batchSize and set to N/numBatches
 batchSize = 0 # only use if numBatches = 0
-numberEpochs = 400
+numberEpochs = 500
 learningRate = 0.1
-reportCycle = 1
-refine = True    # creates new model if False
-weights = None    # None: unweighted. 
-                    # (WH, WE, WC): use fixed weights
-                    # 'calc' : calculated weights to use
+reportCycle = 10
+refine = False     # creates new model if False
                 
-# files to load and optional file directory---can leave undefined '' or '.'
+# files to load and optional file directory -----------------------------
+# can leave undefined '' or '.'
 inputTrain = 'train.csv'
 inputTest = 'test.csv'
 fileDirectory = '.'
 
-# data parameters for screening sequence length and cropping
-sequenceLimits = ( 1, 2000, 502 )   # format ( min, max, crop )
-siteLimits = ( 1, 20, 6 )   # format ( min, max, crop )
+# data parameters for screening sequence length and cropping-----------------
+# format ( min, max, crop )
+sequenceLimits = ( 1, 2000, 502 )  
+siteLimits = ( 1, 20, 6 )   # note: crop must be 6 for model_20251014 !!!!
 
-# symbol usage
-siteVocab = 'NACGTUWSMKRYBDHV'    # uses N as padding as well as internal N
-aaVocab = " ARNDCEQGHILKMFPSTWYV"   # uses space as padding
+# symbol usage, uses space as padding -------------------------------------
+siteVocab = ' ACGTNUWSMKRYBDHV'
+aaVocab = " ARNDCEQGHILKMFPSTWYV"
 ###########################################################################
 ###########################################################################
 ###########################################################################
@@ -85,21 +81,6 @@ for r, d in zip(rows, ds):
     print(f"{r:<20} {a:<15} {b:<15}")
 
 ###########################################################################
-'''
-# create weights for classes--should broadcast correctly in loss calc
-yMask = yTrain.sum(axis=1).detach().numpy()
-yClasses = np.argmax(yTrain.detach().numpy(), axis=1)
-yAdjusted = yClasses + yMask
-uniqueClasses, numClasses = np.unique(yAdjusted, return_counts=True)
-uniqueClasses = np.delete( uniqueClasses, np.where(uniqueClasses==0))
-numClasses = numClasses[1:]
-if not weights:
-    weights=[1.0,1.0,1.0]
-elif weights=='calc':
-    weights = numClasses.sum()/numClasses/3 # dims=(3)
-# add dim in place to get dims = (3,1) for broadcasting
-weights = torch.tensor(weights).unsqueeze_(1)
-'''
 
 # determine batch size and number of batches -----------------------    
 if numBatches > 0:
@@ -107,13 +88,6 @@ if numBatches > 0:
 else:
     numBatches = int(len(xTrain)/batchSize)
 
-'''
-print('{:<10} {:<10} {:<10} {:<10} {:<10}'.format('index','label','count','fraction','weight') )
-for i,tl in enumerate(targetLabels):
-    print('{:<10} {:<10} {:<10} {:<10.4} {:<10.4}'.format(
-        i,tl,int(numClasses[i]),numClasses[i]/numClasses.sum(), float(weights[i]) 
-        ) )
-'''
 print('number of batches:', numBatches)
 print('size of batches:', batchSize)
 dataloader = DataLoader(dataTrain, batch_size=batchSize, shuffle=True)
@@ -135,12 +109,14 @@ print("{0:20} {1:<20}".format("TOTAL", total_params))
 
 ###########################################################################
 # run cycles of optimization ----------------------------------------
-plt.figure(1)
+
 optimizer = torch.optim.SGD(model.parameters(), lr=learningRate)
 #lossFunc = torch.nn.CrossEntropyLoss( weight=weights,ignore_index=-1)
 print('\nOPTIMIZATION')
 print('{:10} {:10} {:10} {:10}'.format('epoch','batch','loss-train','loss-test') )
 stepCount = 0
+trainLosses = []
+testLosses = []
 for i in range(numberEpochs):
     for j, batch in enumerate(dataloader):
         
@@ -164,11 +140,17 @@ for i in range(numberEpochs):
             testLoss = testLossTerms.sum()/yTest.shape.numel() # normalize by num of AAs
 
             print(f"{i:<10} {j:<10} {loss.item():<10.5} {testLoss.item():<10.5}")
-            plt.plot([stepCount], [loss.item()], '.k')
-            plt.plot([stepCount], [testLoss.item()], '.r')
+            trainLosses.append(loss.item())
+            testLosses.append(testLoss.item())
         
         stepCount += 1
-
+        
+plt.figure(1)
+plt.plot(trainLosses, '.k', label='Training Loss')
+plt.plot(testLosses, '.r', label='Test Loss')
+plt.legend()
+plt.xlabel('training iteration')
+plt.ylabel('loss')
 plt.show()
 
 ###########################################################################
@@ -184,15 +166,18 @@ for t,xs,ys in zip(titles,xSets,ySets):
     # problem: whenever zero-padding is encountered, argmax returns class 0!
     # that is checked against some 'random' prediction !!
     # makes it look worse than it is!
-    print(t+' set performance')
+    print('\n'+t+' set performance')
     mask = (ys.sum(axis=1)).flatten()
     yCheck = np.argmax(ys.detach().numpy(), axis=1).flatten()
     prediction = model(xs)
     pCheck = np.argmax(prediction.detach().numpy(), axis=1).flatten()
-    cm = confusion_matrix(yCheck, pCheck, sample_weight=mask)
+    cm = confusion_matrix(yCheck, pCheck, sample_weight=mask,
+                          labels=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])
     disp = ConfusionMatrixDisplay(confusion_matrix=cm,
                                   display_labels=siteVocab)
     disp.plot()
+    plt.title(t+' data')
+    plt.show()
     recall = np.diagonal(cm)/cm.sum(axis=1)
     precision = np.diagonal(cm)/cm.sum(axis=0)
     print('{:10} {:10} {:10}'.format('class', 'recall', 'precision'))

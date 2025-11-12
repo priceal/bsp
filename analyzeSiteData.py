@@ -25,9 +25,9 @@ import matplotlib.pyplot as plt
 
 # 20251021 file is created from formats 2 (GCG), 8 (itype2) and 13 (Bionet)
 # and contains 7913 entries: 980 (GCG), 3253 (itype2) and 3680 (Bionet)  
-siteFile = 'sites_combined_20251021.csv' # formats
+siteFile = 'train.csv' # formats
 
-dataDir = 'data' 
+dataDir = '.' 
 
 # character separating columns
 delimitChar = ','   #   ','  or '\t'
