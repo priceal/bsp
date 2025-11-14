@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['bsp_utils.py', 'training_bsp.py', 'model_20251014.py', 'test.csv', 'analyzeSiteData.py', 'analyzeSequenceData.py']
+recent_files = ['bsp_utils.py', 'analyzeSiteData.py', 'analyzeSequenceData.py', 'analyzeSequenceData2.py', 'combineSiteFiles_20251104_8_13_seq.py', 'analyzeRedundantSequences.py', 'cleanSiteFile.py', 'removePutativeSequences.py', 'removeRedundantSequences.py', 'removeNoSiteSequences.py', 'training_bsp.py']
 
 [main]
 version = 0.2.0
