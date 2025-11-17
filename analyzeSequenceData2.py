@@ -36,7 +36,7 @@ sequenceFile = 'protein_seqs.txt'
 dataDir = '/home/allen/projects/DATA/bsp'
 
 # input file format
-fileFormat = 'fasta'  #if error message, try 'fasta-pearson' or 'fasta'
+fileFormat = 'fasta-pearson'  #if error message, try 'fasta-pearson' or 'fasta'
 
 # option to print sequence names as processed
 printNames = True  
@@ -47,7 +47,7 @@ filterPut = True
 
 # output file names --- 'None' if not saving reformated data
 siteFileOutput = None # 'data/All_Type_II_restriction_enzyme_genes_Protein_sites.csv'
-combinedFileOutput = None # 'data/All_Type_II_restriction_enzyme_genes_Protein_combined.csv'
+combinedFileOutput =  'data/protein_seqs_cleaned_type.csv'
 
 ###############################################################################
 ################ DOT NOT CHANGE ANYTHING UNDER THIS SEPARATOR #################
@@ -61,20 +61,29 @@ names = []
 sites = []
 sequences = []
 lengths = []
+enzymeTypes = []
 for i, rec in enumerate(record):
     headerDict = dict(
                     [s.split(':',maxsplit=1) for s in rec.description.split('\t')]
                     )
     sequences.append( str(rec.seq).strip(' <>') ) # strip to be safe
     lengths.append( len(str(rec.seq).strip(' <>') ) )
+    
     if 'REBASE' in headerDict.keys():
         names.append( headerDict['REBASE'].strip() ) # strip to be safe
     else:
         names.append( '?' ) 
+        
     if 'RecSeq' in headerDict.keys():
         sites.append( headerDict['RecSeq'].strip(' N') )
     else:
         sites.append('x')
+        
+    if 'EnzType' in headerDict.keys():
+        enzymeTypes.append( headerDict['EnzType'].strip() )
+    else:
+        enzymeTypes.append('no type')
+        
     # print out RE name if needed
     if i % reportCycle == 0:
         if printNames:
@@ -82,6 +91,7 @@ for i, rec in enumerate(record):
     
 # create dataframe, print stats and plot length histogram
 dataDf = pd.DataFrame( { 'RE': names, 
+                        'type': enzymeTypes,
                         'site':sites,
                         'sequence': sequences,
                         'length': lengths } )
@@ -91,7 +101,10 @@ print( 'unique sequences:', len(set(dataDf.sequence)) )
       
 # filter out putative sequences if requested
 if filterPut:
-    dataDf = dataDf[ dataDf['RE'].map( lambda x: not x.endswith('P') ) ]
+    dataDf = dataDf[ dataDf['RE'].map(
+        lambda x: not x.split()[0].endswith('P') 
+        ) ] # some have more than one name 
+    
     print('\nnon-putative sequences\n',dataDf.describe())
     print( 'unique non-putative sequences:', len(set(dataDf.sequence)) )
     
@@ -103,7 +116,7 @@ print( 'unique sites:', len(set(dataDf[ dataDf.site!='x' ].site)) )
 if siteFileOutput:
     dataDf[ dataDf.site!='x' ][ ['RE','site' ] ].to_csv(siteFileOutput,index=False, header=False)
 if combinedFileOutput:
-    dataDf[ dataDf.site!='x' ][ ['RE','site','sequence' ] ].to_csv(combinedFileOutput,index=False)
+    dataDf[ dataDf.site!='x' ][ ['RE','type','site','sequence' ] ].to_csv(combinedFileOutput,index=False)
 
 
 
