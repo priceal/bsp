@@ -1,0 +1,168 @@
+Create directory tmp
+linclust db/DB_psc6 DB_05 tmp --cov-mode 0 --min-seq-id 0.5 
+
+MMseqs Version:                     	22115bff0d29efef9929eb21d73ac9622fff816a
+Cluster mode                        	0
+Max connected component depth       	1000
+Similarity type                     	2
+Threads                             	24
+Compressed                          	0
+Verbosity                           	3
+Weight file name                    	
+Cluster Weight threshold            	0.9
+Substitution matrix                 	aa:blosum62.out,nucl:nucleotide.out
+Add backtrace                       	false
+Alignment mode                      	2
+Alignment mode                      	0
+Allow wrapped scoring               	false
+E-value threshold                   	0.001
+Seq. id. threshold                  	0.5
+Min alignment length                	0
+Seq. id. mode                       	0
+Alternative alignments              	0
+Coverage threshold                  	0.8
+Coverage mode                       	0
+Max sequence length                 	65535
+Compositional bias                  	1
+Compositional bias scale            	1
+Max reject                          	2147483647
+Max accept                          	2147483647
+Include identical seq. id.          	false
+Preload mode                        	0
+Pseudo count a                      	substitution:1.100,context:1.400
+Pseudo count b                      	substitution:4.100,context:5.800
+Score bias                          	0
+Realign hits                        	false
+Realign score bias                  	-0.2
+Realign max seqs                    	2147483647
+Correlation score weight            	0
+Gap open cost                       	aa:11,nucl:5
+Gap extension cost                  	aa:1,nucl:2
+Zdrop                               	40
+Alphabet size                       	aa:21,nucl:5
+k-mers per sequence                 	21
+Spaced k-mers                       	0
+Spaced k-mer pattern                	
+Scale k-mers per sequence           	aa:0.000,nucl:0.200
+Adjust k-mer length                 	false
+Mask residues                       	0
+Mask residues probability           	0.9
+Mask lower case residues            	0
+Mask lower letter repeating N times 	0
+k-mer length                        	0
+Shift hash                          	67
+Split memory limit                  	0
+Include only extendable             	false
+Skip repeating k-mers               	false
+Rescore mode                        	0
+Remove hits by seq. id. and coverage	false
+Sort results                        	0
+Remove temporary files              	false
+Force restart with latest tmp       	false
+MPI runner                          	
+
+Set cluster mode SET COVER.
+kmermatcher db/DB_psc6 tmp/3719426549500407603/pref --sub-mat 'aa:blosum62.out,nucl:nucleotide.out' --alph-size aa:13,nucl:5 --min-seq-id 0.5 --kmer-per-seq 21 --spaced-kmer-mode 0 --kmer-per-seq-scale aa:0.000,nucl:0.200 --adjust-kmer-len 0 --mask 0 --mask-prob 0.9 --mask-lower-case 0 --mask-n-repeat 0 --cov-mode 0 -k 0 -c 0.8 --max-seq-len 65535 --hash-shift 67 --split-memory-limit 0 --include-only-extendable 0 --ignore-multi-kmer 0 --threads 24 --compressed 0 -v 3 --cluster-weight-threshold 0.9 
+
+kmermatcher db/DB_psc6 tmp/3719426549500407603/pref --sub-mat 'aa:blosum62.out,nucl:nucleotide.out' --alph-size aa:13,nucl:5 --min-seq-id 0.5 --kmer-per-seq 21 --spaced-kmer-mode 0 --kmer-per-seq-scale aa:0.000,nucl:0.200 --adjust-kmer-len 0 --mask 0 --mask-prob 0.9 --mask-lower-case 0 --mask-n-repeat 0 --cov-mode 0 -k 0 -c 0.8 --max-seq-len 65535 --hash-shift 67 --split-memory-limit 0 --include-only-extendable 0 --ignore-multi-kmer 0 --threads 24 --compressed 0 -v 3 --cluster-weight-threshold 0.9 
+
+Database size: 10814 type: Aminoacid
+Reduced amino acid alphabet: (A S T) (C) (D B N) (E Q Z) (F Y) (G) (H) (I V) (K R) (L J M) (P) (W) (X) 
+
+Generate k-mers list for 1 split
+[=================================================================] 10.81K 0s 16ms
+Sort kmer 0h 0m 0s 20ms
+Sort by rep. sequence 0h 0m 0s 8ms
+Time for fill: 0h 0m 0s 1ms
+Time for merging to pref: 0h 0m 0s 0ms
+Time for processing: 0h 0m 0s 73ms
+rescorediagonal db/DB_psc6 db/DB_psc6 tmp/3719426549500407603/pref tmp/3719426549500407603/pref_rescore1 --sub-mat 'aa:blosum62.out,nucl:nucleotide.out' --rescore-mode 0 --wrapped-scoring 0 --filter-hits 0 -e 0.001 -c 0.8 -a 0 --cov-mode 0 --min-seq-id 0.5 --min-aln-len 0 --seq-id-mode 0 --add-self-matches 0 --sort-results 0 --db-load-mode 0 --threads 24 --compressed 0 -v 3 
+
+[=================================================================] 10.81K 0s 2ms
+Time for merging to pref_rescore1: 0h 0m 0s 3ms
+Time for processing: 0h 0m 0s 13ms
+clust db/DB_psc6 tmp/3719426549500407603/pref_rescore1 tmp/3719426549500407603/pre_clust --cluster-mode 0 --max-iterations 1000 --similarity-type 2 --threads 24 --compressed 0 -v 3 --cluster-weight-threshold 0.9 
+
+Clustering mode: Set Cover
+[=================================================================] 10.81K 0s 0ms
+Sort entries
+Find missing connections
+Found 13729 new connections.
+Reconstruct initial order
+[=================================================================] 10.81K 0s 0ms
+Add missing connections
+[=================================================================] 10.81K 0s 0ms
+
+Time for read in: 0h 0m 0s 3ms
+Total time: 0h 0m 0s 5ms
+
+Size of the sequence database: 10814
+Size of the alignment database: 10814
+Number of clusters: 5468
+
+Writing results 0h 0m 0s 0ms
+Time for merging to pre_clust: 0h 0m 0s 0ms
+Time for processing: 0h 0m 0s 8ms
+createsubdb tmp/3719426549500407603/order_redundancy db/DB_psc6 tmp/3719426549500407603/input_step_redundancy -v 3 --subdb-mode 1 
+
+Time for merging to input_step_redundancy: 0h 0m 0s 0ms
+Time for processing: 0h 0m 0s 2ms
+createsubdb tmp/3719426549500407603/order_redundancy tmp/3719426549500407603/pref tmp/3719426549500407603/pref_filter1 -v 3 --subdb-mode 1 
+
+Time for merging to pref_filter1: 0h 0m 0s 0ms
+Time for processing: 0h 0m 0s 1ms
+filterdb tmp/3719426549500407603/pref_filter1 tmp/3719426549500407603/pref_filter2 --filter-file tmp/3719426549500407603/order_redundancy --threads 24 --compressed 0 -v 3 
+
+Filtering using file(s)
+[=================================================================] 5.47K 0s 1ms
+Time for merging to pref_filter2: 0h 0m 0s 2ms
+Time for processing: 0h 0m 0s 14ms
+rescorediagonal tmp/3719426549500407603/input_step_redundancy tmp/3719426549500407603/input_step_redundancy tmp/3719426549500407603/pref_filter2 tmp/3719426549500407603/pref_rescore2 --sub-mat 'aa:blosum62.out,nucl:nucleotide.out' --rescore-mode 1 --wrapped-scoring 0 --filter-hits 1 -e 0.001 -c 0.8 -a 0 --cov-mode 0 --min-seq-id 0.5 --min-aln-len 0 --seq-id-mode 0 --add-self-matches 0 --sort-results 0 --db-load-mode 0 --threads 24 --compressed 0 -v 3 
+
+[=================================================================] 5.47K 0s 2ms
+Time for merging to pref_rescore2: 0h 0m 0s 2ms
+Time for processing: 0h 0m 0s 15ms
+align tmp/3719426549500407603/input_step_redundancy tmp/3719426549500407603/input_step_redundancy tmp/3719426549500407603/pref_rescore2 tmp/3719426549500407603/aln --sub-mat 'aa:blosum62.out,nucl:nucleotide.out' -a 0 --alignment-mode 2 --alignment-output-mode 0 --wrapped-scoring 0 -e 0.001 --min-seq-id 0.5 --min-aln-len 0 --seq-id-mode 0 --alt-ali 0 -c 0.8 --cov-mode 0 --max-seq-len 65535 --comp-bias-corr 1 --comp-bias-corr-scale 1 --max-rejected 2147483647 --max-accept 2147483647 --add-self-matches 0 --db-load-mode 0 --pca substitution:1.100,context:1.400 --pcb substitution:4.100,context:5.800 --score-bias 0 --realign 0 --realign-score-bias -0.2 --realign-max-seqs 2147483647 --corr-score-weight 0 --gap-open aa:11,nucl:5 --gap-extend aa:1,nucl:2 --zdrop 40 --threads 24 --compressed 0 -v 3 
+
+Compute score and coverage
+Query database size: 5468 type: Aminoacid
+Target database size: 5468 type: Aminoacid
+Calculation of alignments
+[=================================================================] 5.47K 0s 112ms
+Time for merging to aln: 0h 0m 0s 2ms
+11051 alignments calculated
+7363 sequence pairs passed the thresholds (0.666275 of overall calculated)
+1.346562 hits per query sequence
+Time for processing: 0h 0m 0s 123ms
+clust tmp/3719426549500407603/input_step_redundancy tmp/3719426549500407603/aln tmp/3719426549500407603/clust --cluster-mode 0 --max-iterations 1000 --similarity-type 2 --threads 24 --compressed 0 -v 3 --cluster-weight-threshold 0.9 
+
+Clustering mode: Set Cover
+[=================================================================] 5.47K 0s 0ms
+Sort entries
+Find missing connections
+Found 1895 new connections.
+Reconstruct initial order
+[=================================================================] 5.47K 0s 0ms
+Add missing connections
+[=================================================================] 5.47K 0s 0ms
+
+Time for read in: 0h 0m 0s 2ms
+Total time: 0h 0m 0s 3ms
+
+Size of the sequence database: 5468
+Size of the alignment database: 5468
+Number of clusters: 4262
+
+Writing results 0h 0m 0s 0ms
+Time for merging to clust: 0h 0m 0s 0ms
+Time for processing: 0h 0m 0s 5ms
+mergeclusters db/DB_psc6 DB_05 tmp/3719426549500407603/pre_clust tmp/3719426549500407603/clust --threads 24 --compressed 0 -v 3 
+
+Clustering step 1
+[=================================================================] 5.47K 0s 2ms
+Clustering step 2
+[=================================================================] 4.26K 0s 4ms
+Write merged clustering
+[=================================================================] 10.81K 0s 5ms
+Time for merging to DB_05: 0h 0m 0s 1ms
+Time for processing: 0h 0m 0s 10ms
