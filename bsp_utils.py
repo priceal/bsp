@@ -13,6 +13,18 @@ import pandas as pd
 import torch
 from torch.utils.data import Dataset
 
+
+
+classDict = {'Type II methyltransferase': 0,
+                'Type III methyltransferase': 1, 
+                 'Type I methyltransferase': 2,
+                 'Type I specificity subunit': 3, 
+                'Type IIG restriction enzyme/methyltransferase': 4, 
+                'Type II restriction enzyme': 5
+                }
+                
+
+
 '''
 ###############################################################################
 ######################### functions/classes ###################################
@@ -78,6 +90,31 @@ def encode(string, vocab=" ARNDCEQGHILKMFPSTWYV", length=100):
         
     return np.array(result)
 
+
+#######################################################################
+def oneHotClass(string, cdict=classDict ):
+    '''
+    create numeric encoding for the string. 
+
+    Args:
+        string (str): input sequence, any spaces will be replaced with 
+        padding char - assumed first char in vocab string
+        vocab (TYPE, optional): symbol list. order defines encoding. 
+        Defaults to " ARNDCEQGHILKMFPSTWYV". expacts first character to be
+        padding..
+
+    Returns:
+        array: N where N is length of input string
+
+    '''
+   
+    oneHot = np.zeros(6,dtype=int)
+    try:
+        oneHot[ cdict[string] ] = 1
+    except:
+        print( string )
+        print( cdict )
+    return oneHot
 
 #######################################################################
 def dataReader(filePath, site=(0,15,15), seq=(0,500,500), 
@@ -166,3 +203,56 @@ class seqDataset(Dataset):
     def __getitem__(self, idx):
 
         return self.x[idx], self.y[idx]
+
+
+
+
+
+#######################################################################
+def classDataReader(filePath, seq=(0,500,500), 
+                    aaVocab = " ARNDCEQGHILKMFPSTWYV" ):
+    '''
+    reads csv file of protein type/sequence data.
+    format of file should be RE, site, sequence, with first line the header
+    
+    Args:
+        filePath (string): input file path.
+        seq : (min,max,crop), optional
+            filters inputs between min/max and crops. The default is (0,500,500).
+        aaVocab : TYPE, optional
+            for encoding. The default is " ARNDCEQGHILKMFPSTWYV".
+
+    Returns:
+        tensor, tensor: first is data in shape (N,seqCrop), the second
+        is target in shape (N, 6)
+    '''
+    try:
+        dataDf = pd.read_csv( filePath )
+    except:
+        print('error reading data frame:', filePath)
+        
+    seqMin, seqMax, seqCrop = seq
+    
+    # filter on site/seq lengths
+    dataDf = dataDf[ dataDf.sequence.str.len() >= seqMin ]
+    dataDf = dataDf[ dataDf.sequence.str.len() <= seqMax ]
+
+    classList=[]
+    sequenceList=[]
+    for i in dataDf.index:
+        # the aa sequence is encoding numerically to char position in aaVocab
+        sequenceList.append(
+                encode(
+                dataDf.at[i,'sequence'],
+                vocab=aaVocab,
+                length=seqCrop)
+            )
+        # the site dna sequence is one-hot encoded using siteVocab
+        classList.append(
+                oneHotClass( 
+                dataDf.at[i,'type'],
+                cdict = classDict )
+            )
+
+    return torch.tensor(np.array(sequenceList), dtype=torch.int, requires_grad=False), \
+        torch.tensor(np.array(classList), dtype=torch.int, requires_grad=False)
