@@ -56,10 +56,9 @@ class classModel(torch.nn.Module):
         # each convolution w/o padding reduces size by kernel-1
         # so minimum size must be greater than SUM(kernel-1)
         paramsCL = (
-                         ( self.ed, 4, 11 ),
-                         ( 4, 4, 11 ),
-                         ( 4, 4, 11 ),
-                         ( 4, 4, 11 )
+                         ( self.ed, 9, 427 ),
+                         ( 9, 13, 160 ),
+                         ( 13, 17, 60 )
                     )
        
         # layer parameters = (input chans, output chans, kernel)
@@ -80,46 +79,43 @@ class classModel(torch.nn.Module):
         self.pooling = torch.nn.MaxPool1d(2, stride=2)
         self.relu = torch.nn.ReLU()
         
-        self.outLayer = torch.nn.Conv1d(in_channels=4,
-                                       out_channels=self.siteCodeSize,
-                                       kernel_size=11,
+        self.lastConv = torch.nn.Conv1d(in_channels=17,
+                                       out_channels=21,
+                                       kernel_size=91,
                                        stride=1,
                                        bias=False,
                                        padding='valid' )
+        
+        self.lastBatch = torch.nn.BatchNorm1d(num_features=21)
+
+        
+# INSERT DEFINITION OF FULLY CONNECTED LATER HERE
+
         self.outBatch = torch.nn.BatchNorm1d(num_features=self.siteCodeSize)
         self.outActiv = torch.nn.Softmax( dim = 1 )
 
     ###########################################################################
     def forward(self, x ):
-        '''
-        Args:
-            x (TYPE): data batch, with shape (N,length)
-            mask (TYPE): binary mask, with shape (N,1,length) to matmult with
-            any x of shape (N,channels,length)
-
-        Returns:
-            x (TYPE): DESCRIPTION.
-        '''
+      
 
         # since CNN uses (*, channels, length), must swap last two dims after 
         # embedding operation which produces (*, length, embedding_dims)
         x = self.embedding(x)
         x = torch.transpose(x,-1,-2)
         
-        # convolutional layers --- note, if manually padded on C-term, the
-        # layers after first hidden will have c-term residues influenced by
-        # a non-zero padding, which will propagate through layers!
-        # might want to zero out the padding after each layer in future
+        # convolutional layers --- 
         for cl, bl in zip( self.conv, self.batch ):
             x = cl(x)
             x = bl(x)
             x = self.pooling(x)
             x = self.relu(x)
             
-        # final output layer
-        x = self.outLayer(x)
-        x = self.outBatch(x)
-        x = self.pooling(x)
-        x = self.outActiv(x)
+        # final cnn layer
+        x = self.lastConv(x)
+        x = self.lastBatch(x)
+        x = self.relu(x)
+        
+        # fc layer
+        # INSERT CORRECT APPLICATON OF FULLY CONNECTED LAYER HERE
 
         return x 
