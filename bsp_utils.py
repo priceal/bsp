@@ -248,11 +248,7 @@ def classDataReader(filePath, seq=(0,500,500),
                 length=seqCrop)
             )
         # the site dna sequence is one-hot encoded using siteVocab
-        classList.append(
-                oneHotClass( 
-                dataDf.at[i,'type'],
-                cdict = classDict )
-            )
+        classList.append( classDict[ dataDf.at[i,'type'] ]  )
 
     return torch.tensor(np.array(sequenceList), dtype=torch.int, requires_grad=False), \
-        torch.tensor(np.array(classList), dtype=torch.int, requires_grad=False)
+        torch.tensor(np.array(classList), dtype=torch.long, requires_grad=False)

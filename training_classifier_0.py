@@ -25,20 +25,20 @@ import bsp_utils as bsp
 from ClassifierModel_20251202 import classModel
 
 # set learning parameters --------------------------------------------------
-numBatches = 1 # if non-zero, ignore batchSize and set to N/numBatches
+numBatches = 10 # if non-zero, ignore batchSize and set to N/numBatches
 batchSize = 0 # only use if numBatches = 0
-numberEpochs = 500
+numberEpochs = 2
 learningRate = 0.1
-reportCycle = 10
+reportCycle = 1
 refine = False     # creates new model if False
                 
 # files to load and optional file directory -----------------------------
 # can leave undefined '' or '.'
-inputTrain = 'data/train.csv'
+inputTrain = 'data/protein_seqs_cleaned_6types_reps.csv'
 
 # data parameters for screening sequence length and cropping-----------------
 # format ( min, max, crop )
-sequenceLimits = ( 1, 2000, 502 )  
+sequenceLimits = ( 1, 2000, 1708 )   
 
 ###########################################################################
 ###########################################################################

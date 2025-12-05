@@ -17,28 +17,28 @@ Created: December 2024
 
 # import libraries -----------------------------------------------------
 import os
-import numpy as np
+os.environ['KMP_DUPLICATE_LIB_OK']='True'  # this is dangerous, but works!
+
 import torch
 from torch.utils.data import DataLoader
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import matplotlib.pyplot as plt
 import bsp_utils as bsp
 from ClassifierModel_20251202 import classModel
 
 # set learning parameters --------------------------------------------------
-numBatches = 1        # if non-zero, ignore batchSize and set to N/numBatches
+numBatches = 9        # if non-zero, ignore batchSize and set to N/numBatches
 batchSize = 0         # only use if numBatches = 0
-numberEpochs = 500
+numberEpochs = 1
 learningRate = 0.1
-reportCycle = 10
+reportCycle = 1
 refine = False        # creates new model if False
                 
 # files to load and optional file directory -----------------------------
-inputTrain = 'data/train.csv'
+inputTrain = 'data/protein_seqs_cleaned_6types_reps.csv'
 
 # data parameters for screening sequence length and cropping-----------------
 # format ( min, max, crop )
-sequenceLimits = ( 1, 2000, 502 )  
+sequenceLimits = ( 1, 2000, 1708 )  # architecture 1 needs input length 1708
 
 ################################################################################
 ################################################################################
@@ -48,10 +48,10 @@ sequenceLimits = ( 1, 2000, 502 )
 aaVocab = " ARNDCEQGHILKMFPSTWYV"
 
 # load data -------------------------------------------
+# datareader should return encoded sequence and class index (no onhot vectors)
 xTrain, yTrain = bsp.classDataReader(inputTrain, 
                                 seq = sequenceLimits
                               )
-yTrain.swapaxes_(1, 2)   # put in correct order for CNN
 dataTrain = bsp.seqDataset(xTrain, yTrain ) # needed for batches
 
 # print data/batch stats ------------------------------------
@@ -87,9 +87,9 @@ for name, parameter in model.named_parameters():
     if not parameter.requires_grad:
         continue
     params = parameter.numel()
-    print("{0:20} {1:<20}".format(name, params))
+    print("{0:20} {1:>20}".format(name, params))
     total_params += params
-print("{0:20} {1:<20}".format("TOTAL", total_params))
+print("{0:20} {1:>20}".format("TOTAL", total_params))
 
 ################################################################################
 
@@ -100,7 +100,7 @@ optimizer = torch.optim.SGD(model.parameters(), lr=learningRate)
 # CrossEntropyLoss for multi-class classification (6 classes)
 # Note: CrossEntropyLoss expects raw logits, so softmax should be removed from
 # model during training. Alternatively, use NLLLoss with log of softmax output.
-# Here we use CrossEntropyLoss and convert one-hot targets to class indices.
+# Here we use CrossEntropyLoss and assume class indices.
 lossFunction = torch.nn.CrossEntropyLoss()
 
 print('\nOPTIMIZATION')
@@ -116,8 +116,7 @@ for i in range(numberEpochs):
         # Calculate loss: convert one-hot yy to class indices for CrossEntropyLoss
         # yy has shape (batch, 6, 1) after swapaxes, squeeze to (batch, 6)
         # then argmax to get class indices (batch,)
-        yy_indices = torch.argmax(yy.squeeze(-1), dim=1)
-        loss = lossFunction(prediction, yy_indices)
+        loss = lossFunction(prediction, yy)
         
         optimizer.zero_grad()
         loss.backward()
@@ -133,7 +132,6 @@ for i in range(numberEpochs):
 ################################################################################
 
 # plot training loss curve
-plt.figure(1)
 plt.plot(trainLosses, '.k', label='Training Loss')
 plt.legend()
 plt.xlabel('training iteration')

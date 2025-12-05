@@ -49,9 +49,9 @@ class classModel(torch.nn.Module):
         # two dims afterward. Has feature that can fix padding index so that embedding
         # coeffs for that are not updated---converts to 0.
         self.embedding = torch.nn.Embedding( 
-                                                self.aaCodeSize, 
-                                                self.ed, 
-                                                padding_idx=self.padidx 
+                                            self.aaCodeSize, 
+                                            self.ed, 
+                                            padding_idx=self.padidx 
                                             )
 
         # convolutional layers, in format 
@@ -91,10 +91,9 @@ class classModel(torch.nn.Module):
         
         self.lastBatch = torch.nn.BatchNorm1d(num_features=21)
 
-        
-# INSERT DEFINITION OF FULLY CONNECTED LATER HERE
+        self.fc = torch.nn.Linear(in_features=21, out_features=6)
 
-        self.outBatch = torch.nn.BatchNorm1d(num_features=self.siteCodeSize)
+        self.outBatch = torch.nn.BatchNorm1d(num_features=6)
         self.outActiv = torch.nn.Softmax( dim = 1 )
 
     ###########################################################################
@@ -114,11 +113,16 @@ class classModel(torch.nn.Module):
             x = self.relu(x)
             
         # final cnn layer
-        x = self.lastConv(x)
+        x = self.lastConv(x)   # input shape (batch, 17, 91)
         x = self.lastBatch(x)
-        x = self.relu(x)
+        x = self.relu(x)        # final output shape (batch, 21, 1)
         
         # fc layer
-        # INSERT CORRECT APPLICATON OF FULLY CONNECTED LAYER HERE
-
+        x = x.squeeze(-1)      # Flatten from (batch, 21, 1) to (batch, 21)
+        x = self.fc(x)         # Apply fully connected layer
+        x = self.outBatch(x)   # Batch normalization (needed?)
+        
+        # for training, do not apply softmax, leave output as raw logits
+        #x = self.outActiv(x)   # Softmax activation for probability output
+            
         return x 

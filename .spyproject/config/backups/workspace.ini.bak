@@ -4,7 +4,7 @@ save_data_on_exit = True
 save_history = True
 save_non_project_files = False
 project_type = 'empty-project-type'
-recent_files = ['bsp_utils.py', 'splitData.py', 'metrics_bsp.py', 'model_20251203.py', 'training_bsp_nometrics.py']
+recent_files = ['ClassifierModel_20251202.py', 'bsp_utils.py', 'training-script-claude-20251205.py']
 
 [main]
 version = 0.2.0
