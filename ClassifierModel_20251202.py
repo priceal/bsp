@@ -26,7 +26,10 @@ class classModel(torch.nn.Module):
     Out[4]: ' ARNDCEQGHILKMFPSTWYV'
 
 
-
+    # CrossEntropyLoss for multi-class classification (6 classes)
+    # Note: CrossEntropyLoss expects raw logits, so softmax should be removed from
+    # model during training. Alternatively, use NLLLoss with log of softmax output.
+    # Here we use CrossEntropyLoss and convert one-hot targets to class indices.
 
 
 
