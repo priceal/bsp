@@ -6,7 +6,7 @@ Script to train the BSP model.
 Script will load a training and a test set and perform a given number of 
 epochs of stochastic gradient descent. During optimization it tracks the 
 training loss and the test loss. At the end of optimization it will plot 
-these losses versus iteration of training and also calculates some 
+these losses versus epoch of training and also calculates some 
 evaluation metrics including the recall and precision per class and 
 plots confusion matrices for both the training and test sets. 
 
@@ -33,12 +33,12 @@ import bsp_utils as bsp
 from model_20251014 import bspModel
 
 # set learning parameters --------------------------------------------------
-numBatches = 1 # if non-zero, ignore batchSize and set to N/numBatches
+numBatches = 9 # if non-zero, ignore batchSize and set to N/numBatches
 batchSize = 0 # only use if numBatches = 0
-numberEpochs = 500
+numberEpochs = 3
 learningRate = 0.1
-reportCycle = 10
-refine = False     # creates new model if False
+reportCycle = 3
+refine =True    # creates new model if False
                 
 # files to load and optional file directory -----------------------------
 # can leave undefined '' or '.'
@@ -89,42 +89,40 @@ if numBatches > 0:
 else:
     numBatches = int(len(xTrain)/batchSize)
 
-print('number of batches:', numBatches)
-print('size of batches:', batchSize)
+print(f'{numBatches} batches of size {batchSize}')
+print(f'1 batch of size {len(xTrain)%batchSize}')
 dataloader = DataLoader(dataTrain, batch_size=batchSize, shuffle=True)
 
 ###########################################################################
 # create model ----------------------------------------------------
 if not refine:     # if refining pre-existing, don't create new model
+    stepCount = 0           # reset count and empty lists
+    trainLosses = []
+    testLosses = []
     model = bspModel()
-print('\nMODEL ')
-print("{0:20} {1:20}".format("MODULES", "PARAMETERS"))
-total_params = 0
-for name, parameter in model.named_parameters():
-    if not parameter.requires_grad:
-        continue
-    params = parameter.numel()
-    print("{0:20} {1:<20}".format(name, params))
-    total_params += params
-print("{0:20} {1:<20}".format("TOTAL", total_params))
+    optimizer = torch.optim.SGD(model.parameters(), lr=learningRate)
+    print('\nMODEL ')
+    print("{0:20} {1:20}".format("MODULES", "PARAMETERS"))
+    total_params = 0
+    for name, parameter in model.named_parameters():
+        if not parameter.requires_grad:
+            continue
+        params = parameter.numel()
+        print("{0:20} {1:<20}".format(name, params))
+        total_params += params
+    print("{0:20} {1:<20}".format("TOTAL", total_params))
 
 ###########################################################################
 # run cycles of optimization ----------------------------------------
 
-optimizer = torch.optim.SGD(model.parameters(), lr=learningRate)
 #lossFunc = torch.nn.CrossEntropyLoss( weight=weights,ignore_index=-1)
 print('\nOPTIMIZATION')
-print('{:10} {:10} {:10} {:10}'.format('epoch','batch','loss-train','loss-test') )
-stepCount = 0
-trainLosses = []
-testLosses = []
+print('{:10} {:10} {:10} {:10}'.format('epoch','batch','size','loss-train','loss-test') )
+
 for i in range(numberEpochs):
     for j, batch in enumerate(dataloader):
-        
         xx, yy = batch[0], batch[1]
-#        yyMask = yy.sum(axis=1).unsqueeze(1)
         prediction = model(xx)
-        
         lossTerms = -yy*torch.log(prediction)
         loss = lossTerms.sum()/yy.shape.numel() # normalize by num of site bps
         
@@ -140,17 +138,18 @@ for i in range(numberEpochs):
             testLossTerms = -yTest*torch.log(testPrediction)
             testLoss = testLossTerms.sum()/yTest.shape.numel() # normalize by num of AAs
 
-            print(f"{i:<10} {j:<10} {loss.item():<10.5} {testLoss.item():<10.5}")
+            print(f"{i:<10} {j:<10} {len(xx):<10} {loss.item():<10.5} {testLoss.item():<10.5}")
             trainLosses.append(loss.item())
             testLosses.append(testLoss.item())
         
         stepCount += 1
         
 plt.figure(1)
-plt.plot(trainLosses, '.k', label='Training Loss')
-plt.plot(testLosses, '.r', label='Test Loss')
+epochArray = np.linspace(0,stepCount/(numBatches+1),len(trainLosses))
+plt.plot(epochArray,trainLosses, '.k', label='Training Loss')
+plt.plot(epochArray,testLosses, '.r', label='Test Loss')
 plt.legend()
-plt.xlabel('training iteration')
+plt.xlabel('epoch')
 plt.ylabel('loss')
 plt.show()
 
